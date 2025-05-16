@@ -18,16 +18,16 @@ public class User {
     @Column(name= "ID", columnDefinition = "uniqueidentifier", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "Fullname", nullable = false, length = 100)
+    @Column(name = "Fullname", length = 100)
     private String fullname;
 
-    @Column(name = "Username", unique = true, nullable = false, length = 50)
+    @Column(name = "Username", unique = true, length = 50)
     private String username;
 
     @Column(name = "Email", unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(name = "Password", nullable = false)
+    @Column(name = "Password")
     private String password;
 
     @Column(name = "PhoneNumber", length = 20)
@@ -36,8 +36,8 @@ public class User {
     @Column(name = "ImageURL")
     private String imageUrl;
 
-    @Column(name = "IsActive")
-    private boolean isActive;
+    @Column(name = "IsActive", nullable = false )
+    private boolean isActive = false;
 
     @CreatedDate
     @Column(name="CreatedAt", updatable = false)
