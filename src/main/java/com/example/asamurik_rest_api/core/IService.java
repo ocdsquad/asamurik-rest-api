@@ -18,5 +18,6 @@ public interface IService<T, I> {
 
     ResponseEntity<Object> findById(I id, HttpServletRequest request);
 
-    ResponseEntity<Object> findByParam(Pageable pageable, HttpServletRequest request);
+    ResponseEntity<Object> findByParam(Pageable pageable, String columnName, String value, HttpServletRequest request);
+
 }
