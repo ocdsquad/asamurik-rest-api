@@ -11,11 +11,6 @@ import org.springframework.http.HttpStatus;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public static <T> GlobalResponse <T>error(ErrorCode errorCode) {
-        return new GlobalResponse<>(false, errorCode.getMessage(), null);
-    }
-
-    @ExceptionHandler(Exception.class)
     public static <T> ResponseEntity<GlobalResponse<T>> handleException(Exception ex) {
         GlobalResponse<T> response = new GlobalResponse<>(false, ex.getMessage(), null);
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
