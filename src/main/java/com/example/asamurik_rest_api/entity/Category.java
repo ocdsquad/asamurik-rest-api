@@ -13,29 +13,17 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name= "ID", updatable = false, nullable = false)
-    private UUID id;
-
+    private Long id;
 
     @Column(name = "Name", nullable = false, length = 100)
     private String name;
 
 
-    @Transient
-    private List<Item> items;
-
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

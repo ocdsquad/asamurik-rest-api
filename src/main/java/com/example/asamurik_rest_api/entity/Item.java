@@ -40,13 +40,13 @@ public class Item {
     @JoinColumn(name = "CategoryID", nullable = false) //Foreign key Column
     private Category categoryId;
 
-
     @ManyToOne
     @JoinColumn(name = "UserID", nullable = false) // Foreign key Column
     private User userId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false)
-    private String status;
+    private ItemStatus status = ItemStatus.FRESH;
 
     @CreatedDate
     @Column(name="CreatedAt", updatable = false)
@@ -56,7 +56,7 @@ public class Item {
     @Column(name="UpdatedAt")
     private LocalDateTime updatedAt;
 
-    @Column(name="CreatedAt", updatable = false)
+    @Column(name="DeletedAt", updatable = false)
     private LocalDateTime deletedAt;
 
     @CreatedBy
@@ -133,11 +133,11 @@ public class Item {
         this.userId = userId;
     }
 
-    public String getStatus() {
+    public ItemStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ItemStatus status) {
         this.status = status;
     }
 

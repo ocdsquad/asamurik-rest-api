@@ -11,7 +11,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 
 @Entity(name = "User")
-@Table(name = "User")
+@Table(name = "[User]")
 public class User {
     @Id
     @GeneratedValue()
@@ -47,7 +47,7 @@ public class User {
     @Column(name="UpdatedAt")
     private LocalDateTime updatedAt;
 
-    @Column(name="CreatedAt", updatable = false)
+    @Column(name="DeletedAt", updatable = false)
     private LocalDateTime deletedAt;
 
     @CreatedBy

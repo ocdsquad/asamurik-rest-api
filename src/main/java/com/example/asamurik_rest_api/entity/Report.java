@@ -13,9 +13,11 @@ public class Report {
     @Column(name = "message")
     private String message;
 
+    @ManyToOne
     @JoinColumn(name = "UserID", referencedColumnName = "id")
     private User user;
 
+    @ManyToOne
     @JoinColumn(name = "ItemID", referencedColumnName = "id")
     private Item item;
 
