@@ -1,7 +1,7 @@
 package com.example.asamurik_rest_api.handler;
 
-import com.foundit.common.response.ErrorCode;
-import com.foundit.common.response.GlobalResponse;
+import com.example.asamurik_rest_api.common.response.ErrorCode;
+import com.example.asamurik_rest_api.common.response.GlobalResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
