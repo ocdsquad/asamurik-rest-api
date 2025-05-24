@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegistrationDTO {
+    @NotNull(message = "Nama lengkap tidak boleh null")
     @Size(min = 4, max = 100, message = "Nama lengkap harus antara 4-100 karakter")
     @Pattern(
             regexp = "^[a-zA-Z\\s]*$",
@@ -13,6 +14,7 @@ public class RegistrationDTO {
     )
     private String fullname;
 
+    @NotNull(message = "Username tidak boleh null")
     @Size(min = 3, max = 50, message = "Username harus antara 3-50 karakter")
     @Pattern(
             regexp = "^[a-z0-9.]*$",
@@ -28,6 +30,7 @@ public class RegistrationDTO {
     )
     private String email;
 
+    @NotNull(message = "Password tidak boleh null")
     @Size(min = 8, message = "Password minimal 8 karakter")
     @Pattern(
             regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@_#\\-$]).*$",
@@ -35,6 +38,7 @@ public class RegistrationDTO {
     )
     private String password;
 
+    @NotNull(message = "Nomor HP tidak boleh null")
     @Pattern(
             regexp = "^(62|\\+62|0)8[0-9]{9,13}$",
             message = "Nomor HP tidak valid (9-13 angka setelah 8), contoh: (0/62/+62)81281910384)"
