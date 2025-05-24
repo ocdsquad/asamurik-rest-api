@@ -13,8 +13,8 @@ import java.util.Map;
 public class ResponseHandler {
 
     public ResponseEntity<Object> handleResponse(
-            HttpStatus status,
             String message,
+            HttpStatus status,
             Object data,
             Object errorCode,
             HttpServletRequest request
