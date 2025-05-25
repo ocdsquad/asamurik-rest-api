@@ -2,6 +2,7 @@ package com.example.asamurik_rest_api.service;
 
 import com.example.asamurik_rest_api.core.IAuth;
 import com.example.asamurik_rest_api.dto.validation.RegistrationDTO;
+import com.example.asamurik_rest_api.dto.validation.VerifyRegistrationDTO;
 import com.example.asamurik_rest_api.entity.User;
 import com.example.asamurik_rest_api.handler.ResponseHandler;
 import com.example.asamurik_rest_api.repository.UserRepository;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -43,7 +44,7 @@ public class AuthService implements IAuth<User> {
                         request
                 );
             }
-            
+
             if (userRepository.existsByUsername(user.getUsername())) {
                 return new ResponseHandler().handleResponse(
                         "Username sudah terdaftar",
@@ -136,7 +137,62 @@ public class AuthService implements IAuth<User> {
 
     @Override
     public ResponseEntity<Object> verifyRegis(User user, HttpServletRequest request) {
-        return null;
+        try {
+            String otp = OtpGenerator.generateOtp();
+
+            Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
+            if (userOptional.isEmpty()) {
+                return new ResponseHandler().handleResponse(
+                        "Email tidak terdaftar",
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        null,
+                        request
+                );
+            }
+
+            User userDB = userOptional.get();
+
+            if (userDB.isActive()) {
+                return new ResponseHandler().handleResponse(
+                        "Akun sudah terverifikasi",
+                        HttpStatus.BAD_REQUEST,
+                        null,
+                        null,
+                        request
+                );
+            }
+
+            if (!BcryptImpl.verifyHash(user.getOtp(), userDB.getOtp())) {
+                return new ResponseHandler().handleResponse(
+                        "OTP yang anda masukkan salah",
+                        HttpStatus.BAD_REQUEST,
+                        null,
+                        null,
+                        request
+                );
+            }
+
+            userDB.setActive(true);
+            userDB.setUpdatedBy(userDB.getId().toString());
+            userDB.setOtp(BcryptImpl.hash(otp));
+        } catch (Exception e) {
+            return new ResponseHandler().handleResponse(
+                    "Verifikasi gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    null,
+                    request
+            );
+        }
+
+        return new ResponseHandler().handleResponse(
+                "Verifikasi berhasil",
+                HttpStatus.OK,
+                null,
+                null,
+                request
+        );
     }
 
     @Override
@@ -161,5 +217,9 @@ public class AuthService implements IAuth<User> {
 
     public User mapToUser(RegistrationDTO registrationDTO) {
         return modelMapper.map(registrationDTO, User.class);
+    }
+
+    public User mapToUser(VerifyRegistrationDTO verifyRegistrationDTO) {
+        return modelMapper.map(verifyRegistrationDTO, User.class);
     }
 }
