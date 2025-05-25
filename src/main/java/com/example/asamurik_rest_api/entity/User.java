@@ -36,6 +36,9 @@ public class User {
     @Column(name = "ImageURL")
     private String imageUrl;
 
+    @Column(name = "OTP",length = 64)
+    private String otp;
+
     @Column(name = "IsActive", nullable = false )
     private boolean isActive = false;
 
@@ -99,6 +102,14 @@ public class User {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
     }
 
     public boolean isActive() {
