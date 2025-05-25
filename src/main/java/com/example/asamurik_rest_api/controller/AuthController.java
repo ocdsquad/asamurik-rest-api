@@ -1,5 +1,6 @@
 package com.example.asamurik_rest_api.controller;
 
+import com.example.asamurik_rest_api.dto.validation.LoginDTO;
 import com.example.asamurik_rest_api.dto.validation.RegistrationDTO;
 import com.example.asamurik_rest_api.dto.validation.VerifyRegistrationDTO;
 import com.example.asamurik_rest_api.service.AuthService;
@@ -32,5 +33,13 @@ public class AuthController {
             HttpServletRequest request
     ) {
         return authService.verifyRegis(authService.mapToUser(verifyRegistrationDTO), request);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Object> login(
+            @Valid @RequestBody LoginDTO loginDTO,
+            HttpServletRequest request
+    ) {
+        return authService.login(authService.mapToUser(loginDTO), request);
     }
 }
