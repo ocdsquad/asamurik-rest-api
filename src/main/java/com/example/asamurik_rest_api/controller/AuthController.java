@@ -1,7 +1,7 @@
 package com.example.asamurik_rest_api.controller;
 
 import com.example.asamurik_rest_api.dto.validation.RegistrationDTO;
-import com.example.asamurik_rest_api.entity.User;
+import com.example.asamurik_rest_api.dto.validation.VerifyRegistrationDTO;
 import com.example.asamurik_rest_api.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -24,5 +24,13 @@ public class AuthController {
             HttpServletRequest request
     ) {
         return authService.register(authService.mapToUser(registrationDTO), request);
+    }
+
+    @PostMapping("/verify-regis")
+    public ResponseEntity<Object> verifyRegis(
+            @Valid @RequestBody VerifyRegistrationDTO verifyRegistrationDTO,
+            HttpServletRequest request
+    ) {
+        return authService.verifyRegis(authService.mapToUser(verifyRegistrationDTO), request);
     }
 }
