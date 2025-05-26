@@ -1,9 +1,22 @@
-package com.example.asamurik_rest_api.util;
+package com.example.asamurik_rest_api.utils;
 
 import com.example.asamurik_rest_api.config.SMTPConfig;
 import com.example.asamurik_rest_api.core.SMTPCore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class SendMailUtil {
+    private static final Logger logger = LoggerFactory.getLogger(SendMailUtil.class);
+    /**
+     * Sends an OTP email to the user.
+     *
+     * @param subject   The subject of the email.
+     * @param fullname  The full name of the informant.
+     * @param email     The recipient's email address.
+     * @param otp       The one-time password to be sent.
+     * @param fileHtml  The HTML file path for the email content.
+     */
     public static void sendOTP(String subject, String fullname, String email, String otp, String fileHtml) {
         try{
             String[] strVerify = new String[3];
@@ -35,6 +48,27 @@ public class SendMailUtil {
             newThread.start();
         }catch (Exception e){
             System.out.println(e.getMessage());
+        }
+    }
+
+    public static void sendEmail(String fullname, String message, String email) {
+        try{
+            String subject = "Pesan dari " + fullname;
+
+            String [] strEmail = {email};
+
+            SMTPCore smtpCore = new SMTPCore();
+            Thread newThread = new Thread(() -> smtpCore.sendMailWithAttachment(
+                    strEmail,
+                    subject,
+                    message,
+                    "TLS",
+                    null
+            ));
+
+            newThread.start();
+        }catch (Exception e){
+            logger.error("Error sending email: {}", e.getMessage());
         }
     }
 }
