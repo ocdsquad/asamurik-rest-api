@@ -1,14 +1,17 @@
 package com.example.asamurik_rest_api.handler;
 
-import com.example.asamurik_rest_api.common.response.GlobalResponse;
+import com.example.asamurik_rest_api.common.response.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -19,6 +22,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     List<Map<String, Object>> errors = new ArrayList<>();
 
     @Override
@@ -50,9 +54,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public static <T> ResponseEntity<GlobalResponse<T>> handleException(Exception ex) {
-        GlobalResponse<T> response = new GlobalResponse<>(false, ex.getMessage(), null);
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<Object> handleException(Exception ex) {
+        logger.error("Unhandled exception: {}", ex.getMessage(), ex);
+        ResponseEntity<Object> response = new ResponseHandler().handleResponse(ErrorCode.INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, (Object) null, (Object) null, (HttpServletRequest) null);
+        return response;
     }
+
 
 }

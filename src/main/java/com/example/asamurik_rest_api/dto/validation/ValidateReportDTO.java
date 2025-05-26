@@ -25,9 +25,6 @@ public class ValidateReportDTO {
     @Size(min = 10, max = 255, message = "Pesan harus antara 10-255 karakter")
     private String message;
 
-    @NotNull(message = "OTP tidak boleh null")
-    @Pattern(regexp = "^[0-9]{6}$",message = "Format OTP tidak valid")
-    private String otp;
 
     public String getFullname() {
         return fullname;
@@ -53,11 +50,4 @@ public class ValidateReportDTO {
         this.message = message;
     }
 
-    public String getOtp() {
-        return otp;
-    }
-
-    public void setOtp(String otp) {
-        this.otp = otp;
-    }
 }

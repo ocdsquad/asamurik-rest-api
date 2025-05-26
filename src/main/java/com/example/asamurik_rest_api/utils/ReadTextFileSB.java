@@ -1,11 +1,10 @@
-package com.example.asamurik_rest_api.util;
+package com.example.asamurik_rest_api.utils;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 public class ReadTextFileSB {
     private String[] exceptionString = new String[2];

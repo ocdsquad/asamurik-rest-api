@@ -6,7 +6,8 @@ import com.example.asamurik_rest_api.entity.User;
 import com.example.asamurik_rest_api.handler.ResponseHandler;
 import com.example.asamurik_rest_api.repository.UserRepository;
 import com.example.asamurik_rest_api.security.BcryptImpl;
-import com.example.asamurik_rest_api.util.SendMailUtil;
+import com.example.asamurik_rest_api.utils.OtpGenerator;
+import com.example.asamurik_rest_api.utils.SendMailUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+
 
 @Service
 @Transactional
@@ -28,7 +29,6 @@ public class AuthService implements IAuth<User> {
     @Autowired
     private ModelMapper modelMapper;
 
-    private final Random random = new Random();
 
     @Override
     public ResponseEntity<Object> register(User user, HttpServletRequest request) {
@@ -43,7 +43,7 @@ public class AuthService implements IAuth<User> {
                         request
                 );
             }
-
+            
             if (userRepository.existsByUsername(user.getUsername())) {
                 return new ResponseHandler().handleResponse(
                         "Username sudah terdaftar",
@@ -54,9 +54,9 @@ public class AuthService implements IAuth<User> {
                 );
             }
 
-            int otp = random.nextInt(999999);
+            String otp = OtpGenerator.generateOtp();
 
-            user.setOtp(BcryptImpl.hash(String.valueOf(otp)));
+            user.setOtp(BcryptImpl.hash(otp));
             user.setPassword(BcryptImpl.hash(user.getPassword()));
 
             userRepository.save(user);
@@ -65,8 +65,51 @@ public class AuthService implements IAuth<User> {
                     "OTP Verifikasi Registrasi Akun",
                     user.getFullname(),
                     user.getEmail(),
-                    String.valueOf(otp),
+                    otp,
                     "ver_regis.html"
+            );
+
+            data.put("email", user.getEmail());
+
+            Thread.sleep(1000);
+        } catch (Exception e) {
+            return new ResponseHandler().handleResponse(
+                    "Registrasi gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    null,
+                    request
+            );
+        }
+
+        return new ResponseHandler().handleResponse(
+                "Registrasi berhasil",
+                HttpStatus.CREATED,
+                data,
+                null,
+                request
+        );
+    }
+
+    public ResponseEntity<Object> register(String email, String fullname, HttpServletRequest request) {
+        Map<String, Object> data = new HashMap<>();
+        try {
+
+            User user = new User();
+            user.setEmail(email);
+            user.setFullname(fullname);
+            String otp = OtpGenerator.generateOtp();
+
+            user.setOtp(BcryptImpl.hash(otp));
+
+            userRepository.save(user);
+
+            SendMailUtil.sendOTP(
+                    "OTP Verifikasi User",
+                    user.getFullname(),
+                    user.getEmail(),
+                    otp,
+                    null
             );
 
             data.put("email", user.getEmail());
