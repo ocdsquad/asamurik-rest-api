@@ -1,9 +1,10 @@
 package com.asamurik_rest_api.service;
 
+import com.example.asamurik_rest_api.config.OtherConfig;
 import com.asamurik_rest_api.core.IAuth;
 import com.asamurik_rest_api.dto.validation.LoginDTO;
 import com.asamurik_rest_api.dto.validation.RegistrationDTO;
-import com.asamurik_rest_api.dto.validation.VerifyRegistrationDTO;
+import com.asamurik_rest_api.dto.validation.VerifyOneTimePasswordDTO;
 import com.asamurik_rest_api.entity.User;
 import com.asamurik_rest_api.handler.ResponseHandler;
 import com.asamurik_rest_api.repository.UserRepository;
@@ -68,6 +69,10 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             user.setPassword(BcryptImpl.hash(user.getPassword()));
 
             userRepository.save(user);
+
+            if (OtherConfig.getEnableAutomationTesting().equals("y")) {
+                data.put("otp", otp);
+            }
 
             SendMailUtil.sendOTP(
                     "OTP Verifikasi Registrasi Akun",
