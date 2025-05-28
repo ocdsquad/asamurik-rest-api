@@ -8,9 +8,9 @@ import com.example.asamurik_rest_api.entity.User;
 import com.example.asamurik_rest_api.handler.ResponseHandler;
 import com.example.asamurik_rest_api.repository.UserRepository;
 import com.example.asamurik_rest_api.security.BcryptImpl;
+import com.example.asamurik_rest_api.utils.JwtUtil;
 import com.example.asamurik_rest_api.utils.OtpGenerator;
 import com.example.asamurik_rest_api.utils.SendMailUtil;
-import com.example.asamurik_rest_api.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,48 +99,49 @@ public class AuthService implements UserDetailsService, IAuth<User> {
         );
     }
 
-    public ResponseEntity<Object> register(String email, String fullname, HttpServletRequest request) {
-        Map<String, Object> data = new HashMap<>();
-        try {
-
-            User user = new User();
-            user.setEmail(email);
-            user.setFullname(fullname);
-            String otp = OtpGenerator.generateOtp();
-
-            user.setOtp(BcryptImpl.hash(otp));
-
-            userRepository.save(user);
-
-            SendMailUtil.sendOTP(
-                    "OTP Verifikasi User",
-                    user.getFullname(),
-                    user.getEmail(),
-                    otp,
-                    null
-            );
-
-            data.put("email", user.getEmail());
-
-            Thread.sleep(1000);
-        } catch (Exception e) {
-            return new ResponseHandler().handleResponse(
-                    "Registrasi gagal, server sedang gangguan, silahkan coba lagi nanti",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    null,
-                    request
-            );
-        }
-
-        return new ResponseHandler().handleResponse(
-                "Registrasi berhasil",
-                HttpStatus.CREATED,
-                data,
-                null,
-                request
-        );
-    }
+//    public ResponseEntity<Object> register(String email, String fullname, HttpServletRequest request) {
+//        Map<String, Object> data = new HashMap<>();
+//        try {
+//
+//            String otp = OtpGenerator.generateOtp();
+//            User user = userRepository.findByEmail(email).orElseGet(() -> {
+//                User newUser = new User();
+//                newUser.setEmail(email);
+//                newUser.setFullname(fullname);
+//                newUser.setCreatedAt(LocalDateTime.now());
+//                newUser.setOtp(BcryptImpl.hash(otp));
+//                return userRepository.save(newUser);
+//            });
+//
+//            SendMailUtil.sendOTP(
+//                    "OTP Verifikasi User",
+//                    user.getFullname(),
+//                    user.getEmail(),
+//                    otp,
+//                    null
+//            );
+//
+//            data.put("email", user.getEmail());
+//
+//            Thread.sleep(1000);
+//        } catch (Exception e) {
+//            return new ResponseHandler().handleResponse(
+//                    "Registrasi gagal, server sedang gangguan, silahkan coba lagi nanti",
+//                    HttpStatus.INTERNAL_SERVER_ERROR,
+//                    null,
+//                    null,
+//                    request
+//            );
+//        }
+//
+//        return new ResponseHandler().handleResponse(
+//                "Registrasi berhasil",
+//                HttpStatus.CREATED,
+//                data,
+//                null,
+//                request
+//        );
+//    }
 
     @Override
     public ResponseEntity<Object> verifyRegis(User user, HttpServletRequest request) {
