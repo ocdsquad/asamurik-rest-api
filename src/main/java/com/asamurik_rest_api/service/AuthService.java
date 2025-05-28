@@ -270,8 +270,65 @@ public class AuthService implements UserDetailsService, IAuth<User> {
     }
 
     @Override
-    public ResponseEntity<Object> forgotPassword(User user, HttpServletRequest request) {
-        return null;
+    public ResponseEntity<Object> forgotPassword(String email, HttpServletRequest request) {
+        try {
+            Optional<User> userOptional = userRepository.findByEmail(email);
+            if (userOptional.isEmpty()) {
+                return new ResponseHandler().handleResponse(
+                        "Email tidak terdaftar",
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        null,
+                        request
+                );
+            }
+
+            User userDB = userOptional.get();
+
+            if (!userDB.isActive()) {
+                return new ResponseHandler().handleResponse(
+                        "Akun belum terverifikasi, silahkan verifikasi akun anda terlebih dahulu",
+                        HttpStatus.BAD_REQUEST,
+                        null,
+                        null,
+                        request
+                );
+            }
+
+            String otp = OtpGenerator.generateOtp();
+            userDB.setOtp(BcryptImpl.hash(otp));
+            if (OtherConfig.getEnableAutomationTesting().equals("y")) {
+                data.put("otp", otp);
+            }
+
+            SendMailUtil.sendOTP(
+                    "OTP Reset Password",
+                    userDB.getFullname(),
+                    userDB.getEmail(),
+                    otp,
+                    "ver_otp.html"
+            );
+
+            data.put("email", userDB.getEmail());
+
+            Thread.sleep(1000);
+        } catch (Exception e) {
+            return new ResponseHandler().handleResponse(
+                    "Pengiriman OTP gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    null,
+                    request
+            );
+        }
+
+        return new ResponseHandler().handleResponse(
+                "OTP berhasil dikirim ke email anda",
+                HttpStatus.OK,
+                data,
+                null,
+                request
+        );
     }
 
     @Override
@@ -283,8 +340,8 @@ public class AuthService implements UserDetailsService, IAuth<User> {
         return modelMapper.map(registrationDTO, User.class);
     }
 
-    public User mapToUser(VerifyRegistrationDTO verifyRegistrationDTO) {
-        return modelMapper.map(verifyRegistrationDTO, User.class);
+    public User mapToUser(VerifyOneTimePasswordDTO verifyOneTimePasswordDTO) {
+        return modelMapper.map(verifyOneTimePasswordDTO, User.class);
     }
 
     public User mapToUser(LoginDTO loginDTO) {
