@@ -32,9 +32,9 @@ public class JwtUtil {
         Claims claims = getAllClaimsFromToken(token);
 
         Map<String, Object> map = new HashMap<>();
-        map.put("userId", claims.get("id"));
+        map.put("userId", claims.getSubject());
         map.put("fullname", claims.get("fullname"));
-        map.put("username", claims.getSubject());
+        map.put("username", claims.get("username"));
         map.put("email", claims.get("email"));
         map.put("phoneNumber", claims.get("phoneNumber"));
 
