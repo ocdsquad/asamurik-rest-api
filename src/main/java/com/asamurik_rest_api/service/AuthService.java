@@ -74,7 +74,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     user.getFullname(),
                     user.getEmail(),
                     otp,
-                    "ver_regis.html"
+                    "ver_otp.html"
             );
 
             data.put("email", user.getEmail());
