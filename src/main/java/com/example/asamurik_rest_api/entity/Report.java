@@ -1,7 +1,9 @@
 package com.example.asamurik_rest_api.entity;
-import com.example.asamurik_rest_api.entity.User;
 
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 public class Report {
@@ -20,6 +22,10 @@ public class Report {
     @ManyToOne
     @JoinColumn(name = "ItemID", referencedColumnName = "id")
     private Item item;
+
+    @CreatedDate
+    @Column(name = "CreatedAt", updatable = false)
+    private LocalDateTime createdAt;
 
     public Long getId() {
         return id;
@@ -51,5 +57,13 @@ public class Report {
 
     public void setItem(Item item) {
         this.item = item;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

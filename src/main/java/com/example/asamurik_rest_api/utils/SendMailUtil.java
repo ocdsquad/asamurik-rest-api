@@ -53,7 +53,7 @@ public class SendMailUtil {
 
     public static void sendEmail(String fullname, String message, String email) {
         try{
-            String subject = "Pesan dari " + fullname;
+            String subject = "FoundIt - Ada pesan dari " + fullname;
 
             String [] strEmail = {email};
 

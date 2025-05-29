@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -19,6 +21,7 @@ public class JwtUtil {
     private String ok;
     private final SecretKey secretKey;
     private final Long timeExpiration;
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
     public JwtUtil(JwtConfig jwtConfig) {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtConfig.getSecretKey()));
@@ -43,7 +46,7 @@ public class JwtUtil {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
-                .parseClaimsJws(token)
+                .parseClaimsJws(token.replace("Bearer ", ""))
                 .getBody();
     }
 
@@ -75,10 +78,14 @@ public class JwtUtil {
     public Boolean validateToken(String token) {
         // Sudah otomatis tervalidasi jika expired date masih aktif
         String username = getUsernameFromToken(token);
-        return (username!=null && !isTokenExpired(token));
+        return (username != null && !isTokenExpired(token));
     }
 
     public String getUsernameFromToken(String token) {
         return getAllClaimsFromToken(token).get("username", String.class);
+    }
+
+    public String getUserIdFromToken(String token) {
+        return getAllClaimsFromToken(token).get("userId", String.class);
     }
 }
