@@ -1,4 +1,4 @@
-package com.example.asamurik_rest_api.dto.validation;
+package com.asamurik_rest_api.dto.validation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
