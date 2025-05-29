@@ -3,10 +3,7 @@ package com.asamurik_rest_api.service;
 import com.asamurik_rest_api.core.IAuth;
 import com.asamurik_rest_api.dto.response.TokenResponse;
 import com.asamurik_rest_api.dto.response.OTPResponse;
-import com.asamurik_rest_api.dto.validation.LoginDTO;
-import com.asamurik_rest_api.dto.validation.RegistrationDTO;
-import com.asamurik_rest_api.dto.validation.ResetPasswordDTO;
-import com.asamurik_rest_api.dto.validation.VerifyOneTimePasswordDTO;
+import com.asamurik_rest_api.dto.validation.*;
 import com.asamurik_rest_api.entity.User;
 import com.asamurik_rest_api.handler.GlobalErrorHandler;
 import com.asamurik_rest_api.handler.ResponseHandler;
@@ -217,7 +214,41 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
     @Override
     public ResponseEntity<Object> sendOTP(User user, HttpServletRequest request) {
-        return null;
+        try {
+            Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
+            if (userOptional.isEmpty()) {
+                return GlobalErrorHandler.dataTidakTerdaftar(null, request, "Email");
+            }
+
+            User userDB = userOptional.get();
+            String subject = userDB.isActive()
+                    ? "OTP Reset Password"
+                    : "OTP Verifikasi Registrasi Akun";
+
+            String otp = OtpGenerator.generateOtp();
+            userDB.setOtp(otp);
+            userDB.setUpdatedBy(userDB.getId().toString());
+
+            SendMailUtil.sendOTP(subject, userDB.getFullname(), userDB.getEmail(), otp, "ver_otp.html");
+
+            Thread.sleep(1000);
+
+            return new ResponseHandler().handleResponse(
+                    "OTP berhasil dikirim ke email anda",
+                    HttpStatus.OK,
+                    mapToOTPResponseDTO(userDB),
+                    null,
+                    request
+            );
+        } catch (Exception e) {
+            return new ResponseHandler().handleResponse(
+                    "Pengiriman OTP gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    null,
+                    request
+            );
+        }
     }
 
     @Override
@@ -360,6 +391,10 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
     public User mapToUser(LoginDTO loginDTO) {
         return modelMapper.map(loginDTO, User.class);
+    }
+
+    public User mapToUser(EmailDTO emailDTO) {
+        return modelMapper.map(emailDTO, User.class);
     }
 
     public User mapToUser(ResetPasswordDTO resetPasswordDTO) {
