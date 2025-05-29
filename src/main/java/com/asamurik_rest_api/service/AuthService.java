@@ -55,7 +55,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             String otp = OtpGenerator.generateOtp();
 
-            user.setOtp(BcryptImpl.hash(otp));
+            user.setOtp(otp);
             user.setPassword(BcryptImpl.hash(user.getPassword()));
 
             userRepository.save(user);
@@ -154,7 +154,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                 return GlobalErrorHandler.akunSudahAktif(null, request);
             }
 
-            if (!BcryptImpl.verifyHash(user.getOtp(), userDB.getOtp())) {
+            if (!user.getOtp().equals(userDB.getOtp())) {
                 return GlobalErrorHandler.otpSalah(null, request);
             }
 
@@ -244,7 +244,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             }
 
             String otp = OtpGenerator.generateOtp();
-            userDB.setOtp(BcryptImpl.hash(otp));
+            userDB.setOtp(otp);
             if (OtherConfig.getEnableAutomationTesting().equals("y")) {
                 data.put("otp", otp);
             }
