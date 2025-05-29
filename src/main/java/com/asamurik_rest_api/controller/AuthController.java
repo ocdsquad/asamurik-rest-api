@@ -44,6 +44,14 @@ public class AuthController {
         return authService.login(authService.mapToUser(loginDTO), request);
     }
 
+    @PostMapping("/send-otp")
+    public ResponseEntity<Object> sendOtp(
+            @Valid @RequestBody EmailDTO emailDTO,
+            HttpServletRequest request
+    ) {
+        return authService.sendOTP(authService.mapToUser(emailDTO), request);
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<Object> forgotPassword(
             @Valid @RequestBody EmailDTO emailDTO,

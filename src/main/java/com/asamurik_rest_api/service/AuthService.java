@@ -1,7 +1,8 @@
 package com.asamurik_rest_api.service;
 
-import com.asamurik_rest_api.config.OtherConfig;
 import com.asamurik_rest_api.core.IAuth;
+import com.asamurik_rest_api.dto.response.LoginResponse;
+import com.asamurik_rest_api.dto.response.OTPResponse;
 import com.asamurik_rest_api.dto.validation.LoginDTO;
 import com.asamurik_rest_api.dto.validation.RegistrationDTO;
 import com.asamurik_rest_api.dto.validation.VerifyOneTimePasswordDTO;
@@ -42,7 +43,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
     @Override
     public ResponseEntity<Object> register(User user, HttpServletRequest request) {
-        Map<String, Object> data = new HashMap<>();
         try {
             Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
             if (userOptional.isPresent() && userOptional.get().getUsername() != null) {
@@ -60,10 +60,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             userRepository.save(user);
 
-            if (OtherConfig.getEnableAutomationTesting().equals("y")) {
-                data.put("otp", otp);
-            }
-
             SendMailUtil.sendOTP(
                     "OTP Verifikasi Registrasi Akun",
                     user.getFullname(),
@@ -72,9 +68,15 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     "ver_otp.html"
             );
 
-            data.put("email", user.getEmail());
-
             Thread.sleep(1000);
+
+            return new ResponseHandler().handleResponse(
+                    "Registrasi berhasil",
+                    HttpStatus.CREATED,
+                    mapToOTPResponseDTO(user),
+                    null,
+                    request
+            );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
                     "Registrasi gagal, server sedang gangguan, silahkan coba lagi nanti",
@@ -84,14 +86,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     request
             );
         }
-
-        return new ResponseHandler().handleResponse(
-                "Registrasi berhasil",
-                HttpStatus.CREATED,
-                data,
-                null,
-                request
-        );
     }
 
 //    public ResponseEntity<Object> register(String email, String fullname, HttpServletRequest request) {
@@ -161,6 +155,14 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             userDB.setActive(true);
             userDB.setUpdatedBy(userDB.getId().toString());
             userDB.setOtp(BcryptImpl.hash(otp));
+
+            return new ResponseHandler().handleResponse(
+                    "Verifikasi registrasi berhasil",
+                    HttpStatus.OK,
+                    null,
+                    null,
+                    request
+            );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
                     "Verifikasi gagal, server sedang gangguan, silahkan coba lagi nanti",
@@ -170,30 +172,36 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     request
             );
         }
-
-        return new ResponseHandler().handleResponse(
-                "Verifikasi berhasil",
-                HttpStatus.OK,
-                null,
-                null,
-                request
-        );
     }
 
     @Override
     public ResponseEntity<Object> login(User user, HttpServletRequest request) {
-        User userDB;
-
         try {
             Optional<User> userOptional = userRepository.findByUsername(user.getUsername());
             if (userOptional.isEmpty()) {
                 return GlobalErrorHandler.usernameAtauPasswordSalah(null, request);
             }
 
-            userDB = userOptional.get();
+            User userDB = userOptional.get();
             if (!BcryptImpl.verifyHash(user.getPassword(), userDB.getPassword())) {
                 return GlobalErrorHandler.usernameAtauPasswordSalah(null, request);
             }
+
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("username", userDB.getUsername());
+            claims.put("fullname", userDB.getFullname());
+            claims.put("email", userDB.getEmail());
+            claims.put("phoneNumber", userDB.getPhoneNumber());
+
+            String token = jwtUtil.doGenerateToken(claims, userDB.getId().toString());
+
+            return new ResponseHandler().handleResponse(
+                    "Login berhasil",
+                    HttpStatus.OK,
+                    mapToTokenResponseDTO(token),
+                    null,
+                    request
+            );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
                     "Login gagal, server sedang gangguan, silahkan coba lagi nanti",
@@ -203,25 +211,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     request
             );
         }
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("username", userDB.getUsername());
-        claims.put("fullname", userDB.getFullname());
-        claims.put("email", userDB.getEmail());
-        claims.put("phoneNumber", userDB.getPhoneNumber());
-
-        String token = jwtUtil.doGenerateToken(claims, userDB.getId().toString());
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("token", token);
-
-        return new ResponseHandler().handleResponse(
-                "Login berhasil",
-                HttpStatus.OK,
-                data,
-                null,
-                request
-        );
     }
 
     @Override
@@ -245,9 +234,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             String otp = OtpGenerator.generateOtp();
             userDB.setOtp(otp);
-            if (OtherConfig.getEnableAutomationTesting().equals("y")) {
-                data.put("otp", otp);
-            }
 
             SendMailUtil.sendOTP(
                     "OTP Reset Password",
@@ -257,9 +243,15 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     "ver_otp.html"
             );
 
-            data.put("email", userDB.getEmail());
-
             Thread.sleep(1000);
+
+            return new ResponseHandler().handleResponse(
+                    "OTP berhasil dikirim ke email anda",
+                    HttpStatus.OK,
+                    mapToOTPResponseDTO(userDB),
+                    null,
+                    request
+            );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
                     "OTP gagal dikirim, server sedang gangguan, silahkan coba lagi nanti",
@@ -269,14 +261,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     request
             );
         }
-
-        return new ResponseHandler().handleResponse(
-                "OTP berhasil dikirim ke email anda",
-                HttpStatus.OK,
-                data,
-                null,
-                request
-        );
     }
 
     @Override
@@ -294,6 +278,16 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
     public User mapToUser(LoginDTO loginDTO) {
         return modelMapper.map(loginDTO, User.class);
+    }
+
+    public OTPResponse mapToOTPResponseDTO(User user) {
+        return modelMapper.map(user, OTPResponse.class);
+    }
+
+    public TokenResponse mapToTokenResponseDTO(String token) {
+        TokenResponse tokenResponse = new TokenResponse();
+        tokenResponse.setToken(token);
+        return tokenResponse;
     }
 
     @Override
