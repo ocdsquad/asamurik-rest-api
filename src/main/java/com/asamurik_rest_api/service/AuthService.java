@@ -43,7 +43,8 @@ public class AuthService implements UserDetailsService, IAuth<User> {
     public ResponseEntity<Object> register(User user, HttpServletRequest request) {
         Map<String, Object> data = new HashMap<>();
         try {
-            if (userRepository.existsByEmail(user.getEmail())) {
+            Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
+            if (userOptional.isPresent() && userOptional.get().getUsername() != null) {
                 return new ResponseHandler().handleResponse(
                         "Email sudah terdaftar",
                         HttpStatus.CONFLICT,
