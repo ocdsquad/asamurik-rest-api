@@ -1,18 +1,16 @@
 package com.example.asamurik_rest_api.entity;
 
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 @Entity(name = "User")
 @Table(name = "[User]")
@@ -56,10 +54,6 @@ public class User implements UserDetails {
 
     @Column(name="DeletedAt", updatable = false)
     private LocalDateTime deletedAt;
-
-    @CreatedBy
-    @Column(name="CreatedBy", updatable = false)
-    private String createdBy;
 
     @LastModifiedBy
     @Column(name="UpdatedBy", insertable = false)
@@ -189,13 +183,6 @@ public class User implements UserDetails {
         this.deletedAt = deletedAt;
     }
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
 
     public String getUpdatedBy() {
         return updatedBy;
