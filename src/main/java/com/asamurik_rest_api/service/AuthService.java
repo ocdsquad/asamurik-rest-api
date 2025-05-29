@@ -1,11 +1,12 @@
 package com.asamurik_rest_api.service;
 
-import com.example.asamurik_rest_api.config.OtherConfig;
+import com.asamurik_rest_api.config.OtherConfig;
 import com.asamurik_rest_api.core.IAuth;
 import com.asamurik_rest_api.dto.validation.LoginDTO;
 import com.asamurik_rest_api.dto.validation.RegistrationDTO;
 import com.asamurik_rest_api.dto.validation.VerifyOneTimePasswordDTO;
 import com.asamurik_rest_api.entity.User;
+import com.asamurik_rest_api.handler.GlobalErrorHandler;
 import com.asamurik_rest_api.handler.ResponseHandler;
 import com.asamurik_rest_api.repository.UserRepository;
 import com.asamurik_rest_api.security.BcryptImpl;
@@ -45,23 +46,11 @@ public class AuthService implements UserDetailsService, IAuth<User> {
         try {
             Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
             if (userOptional.isPresent() && userOptional.get().getUsername() != null) {
-                return new ResponseHandler().handleResponse(
-                        "Email sudah terdaftar",
-                        HttpStatus.CONFLICT,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.dataSudahTerdaftar(null, request, "Email");
             }
 
             if (userRepository.existsByUsername(user.getUsername())) {
-                return new ResponseHandler().handleResponse(
-                        "Username sudah terdaftar",
-                        HttpStatus.CONFLICT,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.dataSudahTerdaftar(null, request, "Username");
             }
 
             String otp = OtpGenerator.generateOtp();
@@ -156,35 +145,17 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
             if (userOptional.isEmpty()) {
-                return new ResponseHandler().handleResponse(
-                        "Email tidak terdaftar",
-                        HttpStatus.NOT_FOUND,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.dataSudahTerdaftar(null, request, "Email");
             }
 
             User userDB = userOptional.get();
 
             if (userDB.isActive()) {
-                return new ResponseHandler().handleResponse(
-                        "Akun sudah terverifikasi",
-                        HttpStatus.BAD_REQUEST,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.akunSudahAktif(null, request);
             }
 
             if (!BcryptImpl.verifyHash(user.getOtp(), userDB.getOtp())) {
-                return new ResponseHandler().handleResponse(
-                        "OTP yang anda masukkan salah",
-                        HttpStatus.BAD_REQUEST,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.otpSalah(null, request);
             }
 
             userDB.setActive(true);
@@ -216,24 +187,12 @@ public class AuthService implements UserDetailsService, IAuth<User> {
         try {
             Optional<User> userOptional = userRepository.findByUsername(user.getUsername());
             if (userOptional.isEmpty()) {
-                return new ResponseHandler().handleResponse(
-                        "Username atau password salah",
-                        HttpStatus.UNAUTHORIZED,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.usernameAtauPasswordSalah(null, request);
             }
 
             userDB = userOptional.get();
             if (!BcryptImpl.verifyHash(user.getPassword(), userDB.getPassword())) {
-                return new ResponseHandler().handleResponse(
-                        "Username atau password salah",
-                        HttpStatus.UNAUTHORIZED,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.usernameAtauPasswordSalah(null, request);
             }
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
@@ -275,25 +234,13 @@ public class AuthService implements UserDetailsService, IAuth<User> {
         try {
             Optional<User> userOptional = userRepository.findByEmail(email);
             if (userOptional.isEmpty()) {
-                return new ResponseHandler().handleResponse(
-                        "Email tidak terdaftar",
-                        HttpStatus.NOT_FOUND,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.dataTidakTerdaftar(null, request, "Email");
             }
 
             User userDB = userOptional.get();
 
             if (!userDB.isActive()) {
-                return new ResponseHandler().handleResponse(
-                        "Akun belum terverifikasi, silahkan verifikasi akun anda terlebih dahulu",
-                        HttpStatus.BAD_REQUEST,
-                        null,
-                        null,
-                        request
-                );
+                return GlobalErrorHandler.akunBelumAktif(null, request);
             }
 
             String otp = OtpGenerator.generateOtp();
@@ -315,7 +262,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             Thread.sleep(1000);
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
-                    "Pengiriman OTP gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    "OTP gagal dikirim, server sedang gangguan, silahkan coba lagi nanti",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     null,
