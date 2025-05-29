@@ -1,12 +1,11 @@
-package com.example.asamurik_rest_api.controller;
+package com.asamurik_rest_api.controller;
 
-import com.example.asamurik_rest_api.common.response.ErrorCode;
-import com.example.asamurik_rest_api.dto.validation.ValidateUpdateUserDTO;
-import com.example.asamurik_rest_api.handler.ResponseHandler;
-import com.example.asamurik_rest_api.service.UserService;
-import com.example.asamurik_rest_api.utils.JwtUtil;
+import com.asamurik_rest_api.common.response.ErrorCode;
+import com.asamurik_rest_api.dto.validation.ValidateUpdateUserDTO;
+import com.asamurik_rest_api.handler.ResponseHandler;
+import com.asamurik_rest_api.service.UserService;
+import com.asamurik_rest_api.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +44,16 @@ public class UserController {
 
     }
 
-    @PostMapping("/profile")
+    @PostMapping(value = "/profile")
     public ResponseEntity<Object> updateUserProfile(
-            @RequestHeader("Authorization") String token, @RequestParam("file") MultipartFile file, @Valid @RequestBody ValidateUpdateUserDTO updateUserDTO,
+            @RequestHeader("Authorization") String token, @RequestParam MultipartFile file,
             HttpServletRequest request
     ) {
+
+        ValidateUpdateUserDTO fullname = new ValidateUpdateUserDTO();
+        fullname.setFullname(request.getParameter("fullname"));
+        logger.debug("Received file: {}", file != null ? file.getOriginalFilename() : "null");
+        logger.debug("Received updateUserDTO: {}", fullname);
         try {
             if (token != null && jwtUtil.validateToken(token)) {
 //            String userID = jwtUtil.getUserIdFromToken(token);
@@ -58,8 +62,8 @@ public class UserController {
                 logger.debug("Extracted username: {}", username);
 
                 //TODO: Update this to use the correct ID from the JWT claims
-                return userService.updateByUsername(username, file, userService.mapToUser(updateUserDTO), request);
-            }else{
+                return userService.updateByUsername(username, file, userService.mapToUser(fullname), request);
+            } else {
                 return new ResponseHandler().handleResponse(
                         ErrorCode.UNAUTHORIZED.getMessage(),
                         HttpStatus.UNAUTHORIZED,
