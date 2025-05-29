@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/user")
@@ -44,26 +45,33 @@ public class UserController {
 
     }
 
-    @PatchMapping("/profile")
+    @PostMapping("/profile")
     public ResponseEntity<Object> updateUserProfile(
-            @RequestHeader("Authorization") String token, @Valid @RequestBody ValidateUpdateUserDTO updateUserDTO,
+            @RequestHeader("Authorization") String token, @RequestParam("file") MultipartFile file, @Valid @RequestBody ValidateUpdateUserDTO updateUserDTO,
             HttpServletRequest request
     ) {
-        if (token != null && jwtUtil.validateToken(token)) {
+        try {
+            if (token != null && jwtUtil.validateToken(token)) {
 //            String userID = jwtUtil.getUserIdFromToken(token);
 //            UUID userUuid = UUID.fromString(userID);
-            String username = jwtUtil.getUsernameFromToken(token);
-            //TODO: Update this to use the correct ID from the JWT claims
-            return userService.updateByUsername(username, userService.mapToUser(updateUserDTO), request);
+                String username = jwtUtil.getUsernameFromToken(token);
+                logger.debug("Extracted username: {}", username);
+
+                //TODO: Update this to use the correct ID from the JWT claims
+                return userService.updateByUsername(username, file, userService.mapToUser(updateUserDTO), request);
+            }else{
+                return new ResponseHandler().handleResponse(
+                        ErrorCode.UNAUTHORIZED.getMessage(),
+                        HttpStatus.UNAUTHORIZED,
+                        null,
+                        null,
+                        request
+                );
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
-        return new ResponseHandler().handleResponse(
-                ErrorCode.UNAUTHORIZED.getMessage(),
-                HttpStatus.UNAUTHORIZED,
-                null,
-                null,
-                request
-        );
     }
 
 
