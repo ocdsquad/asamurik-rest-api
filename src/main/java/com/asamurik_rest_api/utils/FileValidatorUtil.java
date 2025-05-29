@@ -1,4 +1,4 @@
-package com.example.asamurik_rest_api.utils;
+package com.asamurik_rest_api.utils;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +22,7 @@ public class FileValidatorUtil {
         String fileName = file.getOriginalFilename();
         return fileName.substring(fileName.lastIndexOf('.') + 1);
     }
+
     public static boolean isImageFile(MultipartFile file) {
         return isValidType(file.getContentType(), Arrays.asList("image/jpeg", "image/png", "image/jpg"));
     }

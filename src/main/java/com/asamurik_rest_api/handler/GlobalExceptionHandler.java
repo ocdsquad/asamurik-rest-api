@@ -1,6 +1,6 @@
-package com.example.asamurik_rest_api.handler;
+package com.asamurik_rest_api.handler;
 
-import com.example.asamurik_rest_api.common.response.ErrorCode;
+import com.asamurik_rest_api.common.response.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +29,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     List<Map<String, Object>> errors = new ArrayList<>();
 
+    @ExceptionHandler(FileNotFoundException.class)
+    protected ResponseEntity<Object> handleFileNotFoundException(
+            FileNotFoundException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        logger.error("File not found: {}", ex.getMessage(), ex);
+        return new ResponseHandler().handleResponse(
+                ErrorCode.FILE_NOT_FOUND.getMessage(),
+                HttpStatus.NOT_FOUND,
+                null,
+                null,
+                request
+        );
+    }
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
@@ -39,7 +57,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
 
         for (FieldError error : fieldErrors) {
-            Map<String,Object> mapError = new HashMap<>();
+            Map<String, Object> mapError = new HashMap<>();
             mapError.put("field", error.getField());
             mapError.put("message", error.getDefaultMessage());
 //            mapError.put("rejected-value", error.getRejectedValue());
@@ -72,5 +90,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         data.put("success", false);
 
         return new ResponseEntity<>(data, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<Object> handleIOException(
+            Exception ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        logger.error("IO Exception: {}", ex.getMessage(), ex);
+        return new ResponseHandler().handleResponse(
+                ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                null,
+                null,
+                request
+        );
     }
 }
