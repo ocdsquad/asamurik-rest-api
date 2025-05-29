@@ -59,4 +59,12 @@ public class AuthController {
     ) {
         return authService.forgotPassword(emailDTO.getEmail(), request);
     }
+
+    @PostMapping("/verify-forgot-password")
+    public ResponseEntity<Object> verifyForgotPassword(
+            @Valid @RequestBody VerifyOneTimePasswordDTO verifyOneTimePasswordDTO,
+            HttpServletRequest request
+    ) {
+        return authService.verifyForgotPassword(authService.mapToUser(verifyOneTimePasswordDTO), request);
+    }
 }
