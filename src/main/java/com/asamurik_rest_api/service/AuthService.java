@@ -5,6 +5,7 @@ import com.asamurik_rest_api.dto.response.TokenResponse;
 import com.asamurik_rest_api.dto.response.OTPResponse;
 import com.asamurik_rest_api.dto.validation.LoginDTO;
 import com.asamurik_rest_api.dto.validation.RegistrationDTO;
+import com.asamurik_rest_api.dto.validation.ResetPasswordDTO;
 import com.asamurik_rest_api.dto.validation.VerifyOneTimePasswordDTO;
 import com.asamurik_rest_api.entity.User;
 import com.asamurik_rest_api.handler.GlobalErrorHandler;
@@ -235,6 +236,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             String otp = OtpGenerator.generateOtp();
             userDB.setOtp(otp);
+            userDB.setUpdatedBy(userDB.getId().toString());
 
             SendMailUtil.sendOTP(
                     "OTP Reset Password",
@@ -276,7 +278,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             }
 
             User userDB = userOptional.get();
-
             if (!userDB.isActive()) {
                 return GlobalErrorHandler.akunBelumAktif(null, request);
             }
@@ -287,6 +288,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             userDB.setOtp(otp);
             userDB.setToken(token);
+            userDB.setUpdatedBy(userDB.getId().toString());
 
             return new ResponseHandler().handleResponse(
                     "Verifikasi OTP berhasil, silahkan gunakan token ini untuk reset password",
@@ -308,7 +310,44 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
     @Override
     public ResponseEntity<Object> resetPassword(User user, HttpServletRequest request) {
-        return null;
+        try {
+            String token = RandomTokenUtil.doGenerateToken();
+
+            Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
+            if (userOptional.isEmpty()) {
+                return GlobalErrorHandler.dataTidakTerdaftar(null, request, "Email");
+            }
+
+            User userDB = userOptional.get();
+
+            if (!userDB.isActive()) {
+                return GlobalErrorHandler.akunBelumAktif(null, request);
+            }
+
+            if (!user.getToken().equals(userDB.getToken())) {
+                return GlobalErrorHandler.tokenSalah(null, request);
+            }
+
+            userDB.setPassword(BcryptImpl.hash(user.getPassword()));
+            userDB.setToken(token);
+            userDB.setUpdatedBy(userDB.getId().toString());
+
+            return new ResponseHandler().handleResponse(
+                    "Reset password berhasil",
+                    HttpStatus.OK,
+                    null,
+                    null,
+                    request
+            );
+        } catch (Exception e) {
+            return new ResponseHandler().handleResponse(
+                    "Reset password gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    null,
+                    request
+            );
+        }
     }
 
     public User mapToUser(RegistrationDTO registrationDTO) {
@@ -321,6 +360,10 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
     public User mapToUser(LoginDTO loginDTO) {
         return modelMapper.map(loginDTO, User.class);
+    }
+
+    public User mapToUser(ResetPasswordDTO resetPasswordDTO) {
+        return modelMapper.map(resetPasswordDTO, User.class);
     }
 
     public OTPResponse mapToOTPResponseDTO(User user) {
