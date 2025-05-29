@@ -1,9 +1,6 @@
 package com.asamurik_rest_api.controller;
 
-import com.asamurik_rest_api.dto.validation.EmailDTO;
-import com.asamurik_rest_api.dto.validation.LoginDTO;
-import com.asamurik_rest_api.dto.validation.RegistrationDTO;
-import com.asamurik_rest_api.dto.validation.VerifyOneTimePasswordDTO;
+import com.asamurik_rest_api.dto.validation.*;
 import com.asamurik_rest_api.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -66,5 +63,13 @@ public class AuthController {
             HttpServletRequest request
     ) {
         return authService.verifyForgotPassword(authService.mapToUser(verifyOneTimePasswordDTO), request);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Object> resetPassword(
+            @Valid @RequestBody ResetPasswordDTO resetPasswordDTO,
+            HttpServletRequest request
+    ) {
+        return authService.resetPassword(authService.mapToUser(resetPasswordDTO), request);
     }
 }
