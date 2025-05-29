@@ -14,5 +14,7 @@ public interface IAuth<T> {
 
     ResponseEntity<Object> forgotPassword(String email, HttpServletRequest request);
 
+    ResponseEntity<Object> verifyForgotPassword(T t, HttpServletRequest request);
+
     ResponseEntity<Object> resetPassword(T t, HttpServletRequest request);
 }

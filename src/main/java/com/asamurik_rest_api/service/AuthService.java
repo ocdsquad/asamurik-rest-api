@@ -1,7 +1,7 @@
 package com.asamurik_rest_api.service;
 
 import com.asamurik_rest_api.core.IAuth;
-import com.asamurik_rest_api.dto.response.LoginResponse;
+import com.asamurik_rest_api.dto.response.TokenResponse;
 import com.asamurik_rest_api.dto.response.OTPResponse;
 import com.asamurik_rest_api.dto.validation.LoginDTO;
 import com.asamurik_rest_api.dto.validation.RegistrationDTO;
@@ -13,6 +13,7 @@ import com.asamurik_rest_api.repository.UserRepository;
 import com.asamurik_rest_api.security.BcryptImpl;
 import com.asamurik_rest_api.utils.JwtUtil;
 import com.asamurik_rest_api.utils.OtpGenerator;
+import com.asamurik_rest_api.utils.RandomTokenUtil;
 import com.asamurik_rest_api.utils.SendMailUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
@@ -255,6 +256,48 @@ public class AuthService implements UserDetailsService, IAuth<User> {
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
                     "OTP gagal dikirim, server sedang gangguan, silahkan coba lagi nanti",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    null,
+                    request
+            );
+        }
+    }
+
+    @Override
+    public ResponseEntity<Object> verifyForgotPassword(User user, HttpServletRequest request) {
+        try {
+            String token = RandomTokenUtil.doGenerateToken();
+            String otp = OtpGenerator.generateOtp();
+
+            Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
+            if (userOptional.isEmpty()) {
+                return GlobalErrorHandler.dataTidakTerdaftar(null, request, "Email");
+            }
+
+            User userDB = userOptional.get();
+
+            if (!userDB.isActive()) {
+                return GlobalErrorHandler.akunBelumAktif(null, request);
+            }
+
+            if (!user.getOtp().equals(userDB.getOtp())) {
+                return GlobalErrorHandler.otpSalah(null, request);
+            }
+
+            userDB.setOtp(otp);
+            userDB.setToken(token);
+
+            return new ResponseHandler().handleResponse(
+                    "Verifikasi OTP berhasil, silahkan gunakan token ini untuk reset password",
+                    HttpStatus.OK,
+                    mapToTokenResponseDTO(token),
+                    null,
+                    request
+            );
+        } catch (Exception e) {
+            return new ResponseHandler().handleResponse(
+                    "Verifikasi gagal, server sedang gangguan, silahkan coba lagi nanti",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     null,
