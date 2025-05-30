@@ -7,6 +7,8 @@ import com.asamurik_rest_api.service.ReportService;
 import com.asamurik_rest_api.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,14 +21,19 @@ public class ReportController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    private static final Logger logger = LoggerFactory.getLogger(ReportController.class);
+
     @PostMapping("/{itemID}")
     public ResponseEntity<Object> sendReport(@Valid @RequestBody ValidateReportDTO reportDTO,
-                                             @RequestHeader("Authorization") String token, HttpServletRequest request, @PathVariable String itemID) {
+                                             @RequestHeader(value = "Authorization", required = false) String token, HttpServletRequest request, @PathVariable String itemID) {
         if (token != null && jwtUtil.validateToken(token)) {
-            String userID = jwtUtil.getUserIdFromToken(token);
-            return reportService.sendReportWithToken(reportService.mapToReport(reportDTO), request, itemID, userID);
+//            String userID = jwtUtil.getUserIdFromToken(token);
+            String username = jwtUtil.getUsernameFromToken(token);
+            logger.debug("Username from token: {}", username);
+            return reportService.sendReportWithToken(reportService.mapToReport(reportDTO), request, itemID, username);
         } else {
-            return reportService.prepareSendReportWithoutToken(reportService.mapToReport(reportDTO), request, itemID);
+            logger.debug("Token is null or invalid, proceeding without token.");
+            return reportService.prepareSendReportWithoutToken(reportDTO, request, itemID);
         }
 
     }
@@ -34,7 +41,8 @@ public class ReportController {
     @PostMapping("/{itemID}/verify-and-send")
     public ResponseEntity<Object> verifyAndSendReport(@Valid @RequestBody ValidateReportGuestDTO reportDTO,
                                                       HttpServletRequest request, @PathVariable String itemID) {
-
+        logger.debug("Verifying and sending report without token for itemID: {}", itemID);
+        logger.debug("Report details: {}", reportDTO);
         return reportService.verifySendReportWithoutToken(reportDTO, request, itemID);
     }
 }
