@@ -143,6 +143,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             }
 
             Map<String, Object> claims = new HashMap<>();
+            claims.put("userId", userDB.getId());
             claims.put("username", userDB.getUsername());
             claims.put("fullname", userDB.getFullname());
             claims.put("email", userDB.getEmail());
