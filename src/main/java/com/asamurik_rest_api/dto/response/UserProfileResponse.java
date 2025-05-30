@@ -1,10 +1,21 @@
 package com.asamurik_rest_api.dto.response;
 
+import java.util.UUID;
+
 public class UserProfileResponse {
+    private UUID id;
     private String fullname;
     private String email;
     private String phoneNumber;
     private String imageUrl;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public String getFullname() {
         return fullname;
