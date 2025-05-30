@@ -6,6 +6,7 @@ target/
 application.properties
 jwt.properties
 smtpconfig.properties
+otherconfig.properties
 ### STS ###
 .apt_generated
 .classpath
