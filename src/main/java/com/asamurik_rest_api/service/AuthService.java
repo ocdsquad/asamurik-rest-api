@@ -1,8 +1,8 @@
 package com.asamurik_rest_api.service;
 
 import com.asamurik_rest_api.core.IAuth;
-import com.asamurik_rest_api.dto.response.TokenResponse;
 import com.asamurik_rest_api.dto.response.OTPResponse;
+import com.asamurik_rest_api.dto.response.TokenResponse;
 import com.asamurik_rest_api.dto.validation.*;
 import com.asamurik_rest_api.entity.User;
 import com.asamurik_rest_api.handler.GlobalErrorHandler;
@@ -86,50 +86,6 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             );
         }
     }
-
-//    public ResponseEntity<Object> register(String email, String fullname, HttpServletRequest request) {
-//        Map<String, Object> data = new HashMap<>();
-//        try {
-//
-//            String otp = OtpGenerator.generateOtp();
-//            User user = userRepository.findByEmail(email).orElseGet(() -> {
-//                User newUser = new User();
-//                newUser.setEmail(email);
-//                newUser.setFullname(fullname);
-//                newUser.setCreatedAt(LocalDateTime.now());
-//                newUser.setOtp(BcryptImpl.hash(otp));
-//                return userRepository.save(newUser);
-//            });
-//
-//            SendMailUtil.sendOTP(
-//                    "OTP Verifikasi User",
-//                    user.getFullname(),
-//                    user.getEmail(),
-//                    otp,
-//                    null
-//            );
-//
-//            data.put("email", user.getEmail());
-//
-//            Thread.sleep(1000);
-//        } catch (Exception e) {
-//            return new ResponseHandler().handleResponse(
-//                    "Registrasi gagal, server sedang gangguan, silahkan coba lagi nanti",
-//                    HttpStatus.INTERNAL_SERVER_ERROR,
-//                    null,
-//                    null,
-//                    request
-//            );
-//        }
-//
-//        return new ResponseHandler().handleResponse(
-//                "Registrasi berhasil",
-//                HttpStatus.CREATED,
-//                data,
-//                null,
-//                request
-//        );
-//    }
 
     @Override
     public ResponseEntity<Object> verifyRegis(User user, HttpServletRequest request) {
