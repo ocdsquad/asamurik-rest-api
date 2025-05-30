@@ -1,54 +1,49 @@
-package com.asamurik_rest_api.dto.validation;
+package com.asamurik_rest_api.dto.update;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class ValidateItemDTO {
-    @NotBlank(message = "Nama barang tidak boleh kosong")
+public class UpdateItemDTO {
+
+    @NotNull
+    @JsonProperty("item-id")
+    private UUID id;
+
     @Size(min = 3, max = 100, message = "Nama harus antara 3-100 karakter")
     private String name;
 
-    @NotBlank(message = "Deskripsi barang tidak boleh kosong")
     @Size(min = 20, max = 255, message = "Deskripsi harus antara 20-255")
     private String description;
 
-    @NotBlank(message = "Kronologi tidak boleh kosong")
     @Size(min = 20, max = 255, message = "Kronologi harus antara 20-255 karakter")
     private String chronology;
 
-    @NotNull(message = "Status barang tidak boleh null")
     @Pattern(
             regexp = "^(FRESH|ON_PROGRESS|FOUND)$",
-            message = "Status hanya boleh (Fresh, In Progress, atau Found)"
+            message = "Status hanya boleh (FRESH, ON_PROGRESS, atau FOUND)"
     )
     private String status;
-
-    @NotNull(message = "ID kategori tidak boleh null")
     @Positive(message = "ID kategori harus positif")
     @JsonProperty("category-id")
     private Long categoryId;
 
-    @NotNull(message = "ID kategori tidak boleh null")
     @JsonProperty("user-id")
     private UUID userId;
 
-    @NotBlank(message = "Lokasi tidak boleh kosong")
     @Size(min = 5, max = 255, message = "Lokasi harus antara 5-255 karakter")
     private String location;
 
+    @Size(max = 255, message = "URL gambar maksimal 255 karakter")
     @JsonProperty("image-url")
     private String imageUrl;
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
 
     public String getName() {
         return name;
@@ -90,6 +85,14 @@ public class ValidateItemDTO {
         this.categoryId = categoryId;
     }
 
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
     public String getLocation() {
         return location;
     }
@@ -98,11 +101,20 @@ public class ValidateItemDTO {
         this.location = location;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 }
+
