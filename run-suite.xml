@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Suite Semua">
+    <test name="Test-All">
+        <classes>
+            <class name="com.asamurik_rest_api.controller.AuthControllerTest"></class>
+            <class name="com.asamurik_rest_api.controller.UserControllerTest"></class>
+            <class name="com.asamurik_rest_api.controller.ItemControllerTest"></class>
+            <class name="com.asamurik_rest_api.controller.ReportControllerTest"></class>
+        </classes>
+    </test>
+</suite>
