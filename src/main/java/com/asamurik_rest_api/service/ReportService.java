@@ -85,7 +85,7 @@ public class ReportService implements IService<Report, Long> {
             );
         }
         return new ResponseHandler().handleResponse(
-                "Report send successfully to " + report.getItem().getUserId().getFullname(),
+                "Report berhasil dikirimkan ke " + report.getItem().getUserId().getFullname(),
                 HttpStatus.CREATED,
                 null,
                 null,

@@ -27,7 +27,7 @@ public class Item {
     private String description;
 
     @Column(name = "Chronology", nullable = false)
-    private String Chronology;
+    private String chronology;
 
     @Column(name = "Location", nullable = false)
     private String location;
@@ -93,11 +93,11 @@ public class Item {
     }
 
     public String getChronology() {
-        return Chronology;
+        return chronology;
     }
 
     public void setChronology(String chronology) {
-        Chronology = chronology;
+        chronology = chronology;
     }
 
     public String getLocation() {
