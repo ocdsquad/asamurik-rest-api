@@ -30,4 +30,32 @@ public class GlobalErrorHandler {
     public static ResponseEntity<Object> objectIsNull(String errorCode, HttpServletRequest request) {
         return new ResponseHandler().handleResponse("OBJECT NULL !!", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
+
+    public static ResponseEntity<Object> dataSudahTerdaftar(String errorCode, HttpServletRequest request, String name) {
+        return new ResponseHandler().handleResponse(name + " sudah terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
+    }
+
+    public static ResponseEntity<Object> dataTidakTerdaftar(String errorCode, HttpServletRequest request, String name) {
+        return new ResponseHandler().handleResponse(name + " tidak terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
+    }
+
+    public static ResponseEntity<Object> otpSalah(String errorCode, HttpServletRequest request) {
+        return new ResponseHandler().handleResponse("OTP salah", HttpStatus.BAD_REQUEST, null, errorCode, request);
+    }
+
+    public static ResponseEntity<Object> akunSudahAktif(String errorCode, HttpServletRequest request) {
+        return new ResponseHandler().handleResponse("Akun sudah aktif", HttpStatus.BAD_REQUEST, null, errorCode, request);
+    }
+
+    public static ResponseEntity<Object> akunBelumAktif(String errorCode, HttpServletRequest request) {
+        return new ResponseHandler().handleResponse("Akun belum aktif", HttpStatus.BAD_REQUEST, null, errorCode, request);
+    }
+
+    public static ResponseEntity<Object> usernameAtauPasswordSalah(String errorCode, HttpServletRequest request) {
+        return new ResponseHandler().handleResponse("Username atau password salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
+    }
+
+    public static ResponseEntity<Object> tokenSalah(String errorCode, HttpServletRequest request) {
+        return new ResponseHandler().handleResponse("Token yang anda masukkan salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
+    }
 }

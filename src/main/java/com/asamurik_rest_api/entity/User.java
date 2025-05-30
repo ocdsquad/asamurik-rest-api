@@ -41,6 +41,9 @@ public class User implements UserDetails {
     @Column(name = "OTP", length = 64)
     private String otp;
 
+    @Column(name = "Token",length = 64)
+    private String token;
+
     @Column(name = "IsActive", nullable = false)
     private boolean isActive = false;
 
@@ -128,6 +131,14 @@ public class User implements UserDetails {
 
     public void setOtp(String otp) {
         this.otp = otp;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public boolean isActive() {

@@ -81,15 +81,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<Object> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+    public ResponseEntity<Object> handleAuthorizationDeniedException(AuthorizationDeniedException ex, HttpServletRequest request) {
         logger.error("Access denied: {}", ex.getMessage(), ex);
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("message", ErrorCode.FORBIDDEN.getMessage());
-        data.put("timestamp", LocalDateTime.now().toString());
-        data.put("success", false);
-
-        return new ResponseEntity<>(data, HttpStatus.FORBIDDEN);
+        return new ResponseHandler().handleResponse(
+                ErrorCode.FORBIDDEN.getMessage(),
+                HttpStatus.FORBIDDEN,
+                null,
+                null,
+                request
+        );
     }
 
     @ExceptionHandler(IOException.class)

@@ -1,8 +1,6 @@
 package com.asamurik_rest_api.controller;
 
-import com.asamurik_rest_api.dto.validation.LoginDTO;
-import com.asamurik_rest_api.dto.validation.RegistrationDTO;
-import com.asamurik_rest_api.dto.validation.VerifyRegistrationDTO;
+import com.asamurik_rest_api.dto.validation.*;
 import com.asamurik_rest_api.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -29,10 +27,10 @@ public class AuthController {
 
     @PostMapping("/verify-regis")
     public ResponseEntity<Object> verifyRegis(
-            @Valid @RequestBody VerifyRegistrationDTO verifyRegistrationDTO,
+            @Valid @RequestBody VerifyOneTimePasswordDTO verifyOneTimePasswordDTO,
             HttpServletRequest request
     ) {
-        return authService.verifyRegis(authService.mapToUser(verifyRegistrationDTO), request);
+        return authService.verifyRegis(authService.mapToUser(verifyOneTimePasswordDTO), request);
     }
 
     @PostMapping("/login")
@@ -41,5 +39,37 @@ public class AuthController {
             HttpServletRequest request
     ) {
         return authService.login(authService.mapToUser(loginDTO), request);
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<Object> sendOtp(
+            @Valid @RequestBody EmailDTO emailDTO,
+            HttpServletRequest request
+    ) {
+        return authService.sendOTP(authService.mapToUser(emailDTO), request);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Object> forgotPassword(
+            @Valid @RequestBody EmailDTO emailDTO,
+            HttpServletRequest request
+    ) {
+        return authService.forgotPassword(emailDTO.getEmail(), request);
+    }
+
+    @PostMapping("/verify-forgot-password")
+    public ResponseEntity<Object> verifyForgotPassword(
+            @Valid @RequestBody VerifyOneTimePasswordDTO verifyOneTimePasswordDTO,
+            HttpServletRequest request
+    ) {
+        return authService.verifyForgotPassword(authService.mapToUser(verifyOneTimePasswordDTO), request);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Object> resetPassword(
+            @Valid @RequestBody ResetPasswordDTO resetPasswordDTO,
+            HttpServletRequest request
+    ) {
+        return authService.resetPassword(authService.mapToUser(resetPasswordDTO), request);
     }
 }

@@ -1,5 +1,6 @@
 package com.asamurik_rest_api.utils;
 
+import com.asamurik_rest_api.config.OtherConfig;
 import com.asamurik_rest_api.config.SMTPConfig;
 import com.asamurik_rest_api.core.SMTPCore;
 import org.slf4j.Logger;
@@ -19,36 +20,38 @@ public class SendMailUtil {
      * @param fileHtml The HTML file path for the email content.
      */
     public static void sendOTP(String subject, String fullname, String email, String otp, String fileHtml) {
-        try {
-            String[] strVerify = new String[3];
-            strVerify[0] = subject;
-            strVerify[1] = fullname;
-            strVerify[2] = otp;
+        if (OtherConfig.getSmtpEnable().equals("y")) {
+            try {
+                String[] strVerify = new String[3];
+                strVerify[0] = subject;
+                strVerify[1] = fullname;
+                strVerify[2] = otp;
 
-            String strContent = new ReadTextFileSB(fileHtml).getContentFile();
+                String strContent = new ReadTextFileSB(fileHtml).getContentFile();
 
-            strContent = strContent.replace("#JKVM3NH", strVerify[0]);
-            strContent = strContent.replace("XF#31NN", strVerify[1]);
-            strContent = strContent.replace("8U0_1GH$", strVerify[2]);
+                strContent = strContent.replace("#JKVM3NH", strVerify[0]);
+                strContent = strContent.replace("XF#31NN", strVerify[1]);
+                strContent = strContent.replace("8U0_1GH$", strVerify[2]);
 
-            final String content = strContent;
-            System.out.println(SMTPConfig.getEmailHost());
+                final String content = strContent;
+                System.out.println(SMTPConfig.getEmailHost());
 
-            String[] strEmail = {email};
-            String[] strImage = null;
+                String[] strEmail = {email};
+                String[] strImage = null;
 
-            SMTPCore smtpCore = new SMTPCore();
-            Thread newThread = new Thread(() -> smtpCore.sendMailWithAttachment(
-                    strEmail,
-                    subject,
-                    content,
-                    "TLS",
-                    strImage
-            ));
+                SMTPCore smtpCore = new SMTPCore();
+                Thread newThread = new Thread(() -> smtpCore.sendMailWithAttachment(
+                        strEmail,
+                        subject,
+                        content,
+                        "TLS",
+                        strImage
+                ));
 
-            newThread.start();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+                newThread.start();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
