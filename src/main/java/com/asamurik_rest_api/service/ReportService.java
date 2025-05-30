@@ -2,6 +2,7 @@ package com.asamurik_rest_api.service;
 
 import com.asamurik_rest_api.common.response.ErrorCode;
 import com.asamurik_rest_api.core.IService;
+import com.asamurik_rest_api.dto.response.OTPResponse;
 import com.asamurik_rest_api.dto.validation.ValidateReportDTO;
 import com.asamurik_rest_api.dto.validation.ValidateReportGuestDTO;
 import com.asamurik_rest_api.entity.Item;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -46,14 +49,15 @@ public class ReportService implements IService<Report, Long> {
         return null;
     }
 
-    public ResponseEntity<Object> sendReportWithToken(Report report, HttpServletRequest request, String itemID, String userID) {
+    public ResponseEntity<Object> sendReportWithToken(Report report, HttpServletRequest request, String itemID, String username) {
         // Implementation for saving a report
         try {
-            UUID userUuid = UUID.fromString(userID);
+//            UUID userUuid = UUID.fromString(userID);
             UUID itemUuid = UUID.fromString(itemID);
 
-            User user = userRepository.findById(userUuid)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userID));
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + username));
             Item item = itemRepository.findById(itemUuid)
                     .orElseThrow(() -> new IllegalArgumentException("Item not found with ID: " + itemID));
 
@@ -66,6 +70,7 @@ public class ReportService implements IService<Report, Long> {
                     report.getMessage(),
                     report.getItem().getUserId().getEmail()
             );
+
 
 
             Thread.sleep(1000);
@@ -88,30 +93,42 @@ public class ReportService implements IService<Report, Long> {
         );
     }
 
-    public ResponseEntity<Object> prepareSendReportWithoutToken(Report report, HttpServletRequest request, String itemID) {
+    public ResponseEntity<Object> prepareSendReportWithoutToken(ValidateReportDTO report, HttpServletRequest request, String itemID) {
         // Implementation for saving a report
+        Map<String, Object> response = new HashMap<>();
         try {
 
             String otp = OtpGenerator.generateOtp();
-            User user = userRepository.findByEmail(report.getUser().getEmail()).orElseGet(() -> {
+            User user = userRepository.findByEmail(report.getEmail()).orElseGet(() -> {
                 User newUser = new User();
-                newUser.setEmail(report.getUser().getEmail());
-                newUser.setFullname(report.getUser().getFullname());
+                newUser.setEmail(report.getEmail());
+                newUser.setFullname(report.getFullname());
                 newUser.setCreatedAt(LocalDateTime.now());
                 newUser.setOtp(BcryptImpl.hash(otp));
                 return userRepository.save(newUser);
             });
+
 
             SendMailUtil.sendOTP(
                     "OTP Verifikasi User",
                     user.getFullname(),
                     user.getEmail(),
                     otp,
-                    null
+                    "ver_otp.html"
             );
-
-
             Thread.sleep(1000);
+
+
+            response.put("otp", otp);
+            OTPResponse otpResponse = mapToOTPResponseDTO(user);
+
+            return new ResponseHandler().handleResponse(
+                    "Silahkan masukkan OTP yang telah dikirim ke email anda untuk mengirim laporan",
+                    HttpStatus.CREATED,
+                    response,
+                    null,
+                    request
+            );
 
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
@@ -122,13 +139,8 @@ public class ReportService implements IService<Report, Long> {
                     request
             );
         }
-        return new ResponseHandler().handleResponse(
-                "Silahkan masukkan OTP yang telah dikirim ke email anda untuk mengirim laporan",
-                HttpStatus.CREATED,
-                null,
-                null,
-                request
-        );
+
+
     }
 
     public ResponseEntity<Object> verifySendReportWithoutToken(ValidateReportGuestDTO reportDTO, HttpServletRequest request, String itemID) {
@@ -219,6 +231,10 @@ public class ReportService implements IService<Report, Long> {
 
     public Report mapToReport(ValidateReportDTO reportDTO) {
         return modelMapper.map(reportDTO, Report.class);
+    }
+
+    public OTPResponse mapToOTPResponseDTO(User user) {
+        return modelMapper.map(user, OTPResponse.class);
     }
 
 }
