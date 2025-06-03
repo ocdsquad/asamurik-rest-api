@@ -8,7 +8,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.encoders.Hex;
 
 public class Crypto {
-    private static final String defaultKey = "7cf79176bfc48d17ea3c84d26399404244a4f0d3d3e2d8c01d5a6d9b37bbf7e8";
+    private static final String defaultKey = "b3dd02f8bef8834e1dc00d6071c4bb59946872a4b02f3b610466ca9228a15d10";
 
     public static String performEncrypt(String keyText, String plainText) {
         try {
