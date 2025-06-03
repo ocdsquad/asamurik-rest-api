@@ -24,6 +24,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -54,10 +55,13 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             String otp = OtpGenerator.generateOtp();
 
-            user.setOtp(otp);
+            user.setOtp(BcryptImpl.hash(otp));
             user.setPassword(BcryptImpl.hash(user.getPassword()));
 
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+
+            savedUser.setUpdatedAt(LocalDateTime.now());
+            savedUser.setUpdatedBy(savedUser.getId().toString());
 
             SendMailUtil.sendOTP(
                     "OTP Verifikasi Registrasi Akun",
@@ -72,7 +76,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             return new ResponseHandler().handleResponse(
                     "Registrasi berhasil",
                     HttpStatus.CREATED,
-                    mapToOTPResponseDTO(user),
+                    mapToOTPResponseDTO(user, otp),
                     null,
                     request
             );
@@ -94,7 +98,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
             if (userOptional.isEmpty()) {
-                return GlobalErrorHandler.dataSudahTerdaftar(null, request, "Email");
+                return GlobalErrorHandler.dataTidakTerdaftar(null, request, "Email");
             }
 
             User userDB = userOptional.get();
@@ -103,11 +107,12 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                 return GlobalErrorHandler.akunSudahAktif(null, request);
             }
 
-            if (!user.getOtp().equals(userDB.getOtp())) {
+            if (!BcryptImpl.verifyHash(user.getOtp(), userDB.getOtp())) {
                 return GlobalErrorHandler.otpSalah(null, request);
             }
 
             userDB.setActive(true);
+            userDB.setUpdatedAt(LocalDateTime.now());
             userDB.setUpdatedBy(userDB.getId().toString());
             userDB.setOtp(BcryptImpl.hash(otp));
 
@@ -138,6 +143,10 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             }
 
             User userDB = userOptional.get();
+            if (!userDB.isActive()) {
+                return GlobalErrorHandler.akunBelumAktif(null, request);
+            }
+
             if (!BcryptImpl.verifyHash(user.getPassword(), userDB.getPassword())) {
                 return GlobalErrorHandler.usernameAtauPasswordSalah(null, request);
             }
@@ -183,7 +192,8 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     : "OTP Verifikasi Registrasi Akun";
 
             String otp = OtpGenerator.generateOtp();
-            userDB.setOtp(otp);
+            userDB.setOtp(BcryptImpl.hash(otp));
+            userDB.setUpdatedAt(LocalDateTime.now());
             userDB.setUpdatedBy(userDB.getId().toString());
 
             SendMailUtil.sendOTP(subject, userDB.getFullname(), userDB.getEmail(), otp, "ver_otp.html");
@@ -193,7 +203,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             return new ResponseHandler().handleResponse(
                     "OTP berhasil dikirim ke email anda",
                     HttpStatus.OK,
-                    mapToOTPResponseDTO(userDB),
+                    mapToOTPResponseDTO(userDB, otp),
                     null,
                     request
             );
@@ -223,7 +233,8 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             }
 
             String otp = OtpGenerator.generateOtp();
-            userDB.setOtp(otp);
+            userDB.setOtp(BcryptImpl.hash(otp));
+            userDB.setUpdatedAt(LocalDateTime.now());
             userDB.setUpdatedBy(userDB.getId().toString());
 
             SendMailUtil.sendOTP(
@@ -239,7 +250,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             return new ResponseHandler().handleResponse(
                     "OTP berhasil dikirim ke email anda",
                     HttpStatus.OK,
-                    mapToOTPResponseDTO(userDB),
+                    mapToOTPResponseDTO(userDB, otp),
                     null,
                     request
             );
@@ -270,12 +281,13 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                 return GlobalErrorHandler.akunBelumAktif(null, request);
             }
 
-            if (!user.getOtp().equals(userDB.getOtp())) {
+            if (!BcryptImpl.verifyHash(user.getOtp(), userDB.getOtp())) {
                 return GlobalErrorHandler.otpSalah(null, request);
             }
 
-            userDB.setOtp(otp);
-            userDB.setToken(token);
+            userDB.setOtp(BcryptImpl.hash(otp));
+            userDB.setToken(BcryptImpl.hash(token));
+            userDB.setUpdatedAt(LocalDateTime.now());
             userDB.setUpdatedBy(userDB.getId().toString());
 
             return new ResponseHandler().handleResponse(
@@ -312,12 +324,13 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                 return GlobalErrorHandler.akunBelumAktif(null, request);
             }
 
-            if (!user.getToken().equals(userDB.getToken())) {
+            if (!BcryptImpl.verifyHash(user.getToken(), userDB.getToken())) {
                 return GlobalErrorHandler.tokenSalah(null, request);
             }
 
             userDB.setPassword(BcryptImpl.hash(user.getPassword()));
-            userDB.setToken(token);
+            userDB.setToken(BcryptImpl.hash(token));
+            userDB.setUpdatedAt(LocalDateTime.now());
             userDB.setUpdatedBy(userDB.getId().toString());
 
             return new ResponseHandler().handleResponse(
@@ -358,8 +371,11 @@ public class AuthService implements UserDetailsService, IAuth<User> {
         return modelMapper.map(resetPasswordDTO, User.class);
     }
 
-    public OTPResponse mapToOTPResponseDTO(User user) {
-        return modelMapper.map(user, OTPResponse.class);
+    public OTPResponse mapToOTPResponseDTO(User user, String otp) {
+        OTPResponse otpResponse = new OTPResponse();
+        otpResponse.setEmail(user.getEmail());
+        otpResponse.setOTP(otp);
+        return otpResponse;
     }
 
     public TokenResponse mapToTokenResponseDTO(String token) {

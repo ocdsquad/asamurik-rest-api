@@ -31,6 +31,10 @@ public class GlobalErrorHandler {
         return new ResponseHandler().handleResponse("OBJECT NULL !!", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
 
+    public static ResponseEntity<Object> dataSudahTerdaftar(String errorCode, HttpServletRequest request, String name) {
+        return new ResponseHandler().handleResponse(name + " sudah terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
+    }
+
     public static ResponseEntity<Object> dataTidakTerdaftar(String errorCode, HttpServletRequest request, String name) {
         return new ResponseHandler().handleResponse(name + " tidak terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
@@ -40,11 +44,11 @@ public class GlobalErrorHandler {
     }
 
     public static ResponseEntity<Object> akunSudahAktif(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Akun sudah aktif", HttpStatus.BAD_REQUEST, null, errorCode, request);
+        return new ResponseHandler().handleResponse("Akun sudah aktif", HttpStatus.CONFLICT, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> akunBelumAktif(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Akun belum aktif", HttpStatus.BAD_REQUEST, null, errorCode, request);
+        return new ResponseHandler().handleResponse("Akun belum aktif", HttpStatus.FORBIDDEN, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> usernameAtauPasswordSalah(String errorCode, HttpServletRequest request) {
