@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class GlobalSuccessHandler {
+    public static ResponseEntity<Object> dataSudahTerdaftar(String errorCode, HttpServletRequest request, String name) {
+        return new ResponseHandler().handleResponse(name + " sudah terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
+    }
+
     public static ResponseEntity<Object> dataBerhasilDisimpan(HttpServletRequest request) {
         return new ResponseHandler().handleResponse("SAVE SUCCESS !!", HttpStatus.CREATED, null, null, request);
     }

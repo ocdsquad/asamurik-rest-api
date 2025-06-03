@@ -31,10 +31,6 @@ public class GlobalErrorHandler {
         return new ResponseHandler().handleResponse("OBJECT NULL !!", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
 
-    public static ResponseEntity<Object> dataSudahTerdaftar(String errorCode, HttpServletRequest request, String name) {
-        return new ResponseHandler().handleResponse(name + " sudah terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
-    }
-
     public static ResponseEntity<Object> dataTidakTerdaftar(String errorCode, HttpServletRequest request, String name) {
         return new ResponseHandler().handleResponse(name + " tidak terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
@@ -57,5 +53,8 @@ public class GlobalErrorHandler {
 
     public static ResponseEntity<Object> tokenSalah(String errorCode, HttpServletRequest request) {
         return new ResponseHandler().handleResponse("Token yang anda masukkan salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
+    }
+    public static ResponseEntity<Object> typeImageSalah(String errorCode, HttpServletRequest request) {
+        return new ResponseHandler().handleResponse("Type image yang anda masukkan salah, silahkan masukkan file bertipe jpg,jpeg,png", HttpStatus.UNAUTHORIZED, null, errorCode, request);
     }
 }
