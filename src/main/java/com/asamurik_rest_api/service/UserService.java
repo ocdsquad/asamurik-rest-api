@@ -79,6 +79,16 @@ public class UserService implements IService<User, UUID> {
         // diganti nanti kalo claims nya udah diubah jadi id bukan username
         //TODO: Update this to use the correct ID from the JWT claims
         //TODO: Bikin logic buat upload foto profile
+        boolean isValidFile = false;
+        if(file != null){
+            logger.debug("Received file: {}", file.getOriginalFilename());
+            if(FileValidatorUtil.isImageFile(file)) {
+                isValidFile = true;
+            } else {
+                logger.debug("Invalid file type: {}", file.getOriginalFilename());
+                return GlobalErrorHandler.typeImageSalah(null, request);
+            }
+        }
         try {
             Optional<User> existingUserByUsername = userRepository.findByUsername(username);
             long maxSize = 5 * 1024 * 1024; // 5 MB
@@ -92,26 +102,15 @@ public class UserService implements IService<User, UUID> {
                     updatedUser.setUpdatedAt(LocalDateTime.now());
                     updatedUser.setUpdatedBy(updatedUser.getUsername());
                 }
-                if (file != null) {
-                    logger.debug("Received file: {}", file.getOriginalFilename());
-                    if (FileValidatorUtil.isImageFile(file) && FileValidatorUtil.isValidFileSize(file.getSize(), maxSize)) {
-                        logger.debug("File is valid: {}", file.getOriginalFilename());
-                        String imageUrl = FileStorageUtil.saveFile(file, "uploads/profile_images/");
-                        logger.debug("Image URL: {}", imageUrl);
-                        updatedUser.setImageUrl(imageUrl);
-                        updatedUser.setUpdatedAt(LocalDateTime.now());
-                        updatedUser.setUpdatedBy(updatedUser.getUsername());
-                    } else {
-                        return new ResponseHandler().handleResponse(
-                                "Invalid file type or size exceeds 5MB",
-                                HttpStatus.BAD_REQUEST,
-                                null,
-                                null,
-                                request
-                        );
-                    }
-
+                if (isValidFile) {
+                    logger.debug("File is valid: {}", file.getOriginalFilename());
+                    String imageUrl = FileStorageUtil.saveFile(file, "uploads/profile_images/");
+                    logger.debug("Image URL: {}", imageUrl);
+                    updatedUser.setImageUrl(imageUrl);
+                    updatedUser.setUpdatedAt(LocalDateTime.now());
+                    updatedUser.setUpdatedBy(updatedUser.getUsername());
                 }
+
                 logger.debug("Saving updated user: {}", updatedUser);
                 userRepository.save(updatedUser);
                 return new ResponseHandler().handleResponse(SuccessCode.UPDATE_USER_SUCCESS.getMessage(), HttpStatus.OK, null, null, request);
