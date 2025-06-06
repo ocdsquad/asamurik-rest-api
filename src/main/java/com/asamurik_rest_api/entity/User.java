@@ -1,6 +1,7 @@
 package com.asamurik_rest_api.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -47,6 +48,7 @@ public class User implements UserDetails {
     @Column(name = "IsActive", nullable = false)
     private boolean isActive = false;
 
+    @CreationTimestamp
     @CreatedDate
     @Column(name = "CreatedAt", updatable = false)
     private LocalDateTime createdAt;
