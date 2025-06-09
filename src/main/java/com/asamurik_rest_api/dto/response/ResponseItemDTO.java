@@ -1,30 +1,23 @@
 package com.asamurik_rest_api.dto.response;
 
-/*
-IntelliJ IDEA 2024.3.5 (Community Edition)
-Build #IC-243.26053.27, built on March 16, 2025
-@Author Rayhan a.k.a. M Rayhan Putra Thahir
-Java Developer
-Created on 28/05/2025 06:51
-@Last Modified 28/05/2025 06:51
-Version 1.0
-*/
-
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseItemDTO {
+
     private UUID id;
     private String name;
+    private String imageUrl;
+    private Long categoryId;
+    private UUID userId;
+    private String status;
     private String description;
     private String chronology;
     private String location;
-    private String imageUrl;
-    private Long categoryId;  // Asumsikan ambil id dari Category
-    private UUID userId;      // Asumsikan ambil id dari User
-    private String status;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 

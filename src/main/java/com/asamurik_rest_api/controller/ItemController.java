@@ -1,34 +1,20 @@
 package com.asamurik_rest_api.controller;
 
-/*
-IntelliJ IDEA 2024.3.5 (Community Edition)
-Build #IC-243.26053.27, built on March 16, 2025
-@Author Rayhan a.k.a. M Rayhan Putra Thahir
-Java Developer
-Created on 27/05/2025 18:26
-@Last Modified 27/05/2025 18:26
-Version 1.0
-*/
-
-import com.asamurik_rest_api.dto.ItemDTO;
-import com.asamurik_rest_api.dto.update.UpdateItemDTO;
+import com.asamurik_rest_api.dto.validation.UploadItemDTO;
 import com.asamurik_rest_api.dto.validation.ValidateItemDTO;
-import com.asamurik_rest_api.entity.Category;
 import com.asamurik_rest_api.entity.Item;
-import com.asamurik_rest_api.entity.User;
-import com.asamurik_rest_api.handler.GlobalErrorHandler;
-import com.asamurik_rest_api.repository.ItemRepository;
 import com.asamurik_rest_api.service.ItemService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -40,93 +26,102 @@ public class ItemController {
 
     @Autowired
     private ItemService itemService;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private ItemRepository itemRepository;
 
-    @PostMapping
-    public ResponseEntity<Object> save(@Valid @RequestBody ValidateItemDTO validateItemDTO,
-                                       HttpServletRequest request) throws BadRequestException {
-        // mapping DTO ke entity di service, lalu panggil save yang terima entity
-        return itemService.save(itemService.mapToItem(validateItemDTO), request);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Object> saveItem(
+            @Valid @RequestPart("item") ValidateItemDTO validateItemDTO,
+            @RequestPart("image-url") MultipartFile imageFile,
+            HttpServletRequest request) throws BadRequestException {
+        if (imageFile != null) {
+            System.out.println("File original name: " + imageFile.getOriginalFilename());
+            System.out.println("File content type: " + imageFile.getContentType());
+            System.out.println("File size: " + imageFile.getSize());
+        } else {
+            System.out.println("No file uploaded for 'image-url'");
+        }
+
+
+        Item item = itemService.mapToSaveItem(validateItemDTO);
+        return itemService.saveItem(item, imageFile, request);
     }
 
-    @PutMapping("/{id}")
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Object> updateItem(
             @PathVariable("id") UUID itemId,
-            @RequestBody UpdateItemDTO updateItemDTO,
+            @Valid @RequestPart("item") UploadItemDTO uploadItemDTO,
+            @RequestPart(value = "image-url", required = false) MultipartFile imageFile,
             HttpServletRequest request,
             @RequestHeader("userId") UUID userId) throws BadRequestException {
 
-        Item item = itemService.mapToItem(updateItemDTO);
-
-        item.setId(itemId);
-
-        return itemService.update(userId, item, request);
+        Item itemUpdate = itemService.mapToUploadItem(uploadItemDTO);
+        return itemService.updateItem(userId, itemId, itemUpdate, imageFile, request);
     }
 
+
+    // Cari item by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Object> findById(
-            @PathVariable("id") UUID id,
+    public ResponseEntity<Object> findByItemId(
+            @PathVariable("id") UUID itemId,
             HttpServletRequest request) {
-        // Panggil service findById
-        return itemService.findById(id, request);
+        return itemService.findByItemId(itemId, request);
     }
 
-//    HARD DELETE
-//    @DeleteMapping("/{itemId}")
-//    public ResponseEntity<Object> deleteById(
-//            @PathVariable("itemId") UUID itemId,
-//            @RequestHeader("userId") UUID userId,
-//            HttpServletRequest request) throws BadRequestException {
-//
-//        return itemService.deleteById(userId, itemId, request);
-//
-//    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<Object> findByUserId(
+            @PathVariable("id") UUID userId,
+            HttpServletRequest request) {
+        return itemService.findByUserId(userId, request);
+    }
+
 
     @GetMapping
-    public ResponseEntity<Object> findAllWithFilter(
+    public ResponseEntity<Object> findByParam(
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false, defaultValue = "desc") String sortDir, // default descending
+            @RequestParam(name = "category-id", required = false) Long categoryId,
+            @RequestParam(name = "name", required = false) String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort,
             HttpServletRequest request
     ) {
-        Sort.Direction direction;
-        try {
-            direction = Sort.Direction.fromString(sortDir);
-        } catch (IllegalArgumentException e) {
-            // jika input tidak valid, fallback ke DESC
-            direction = Sort.Direction.DESC;
+        // Default sorting
+        String sortParam = (sort == null || sort.isBlank()) ? "createdAt,desc" : sort;
+
+        Sort sortObj;
+        if (sortParam.contains(",")) {
+            String[] sortParts = sortParam.split(",");
+            sortObj = Sort.by(Sort.Direction.fromString(sortParts[1]), sortParts[0]);
+        } else {
+            sortObj = Sort.by(Sort.Direction.fromString(sortParam), "createdAt");
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, sortObj);
 
-        return itemService.findAllWithFilter(status, categoryId, pageable, request);
+        // Sanitasi input
+        String statusFilter = (status == null || status.isBlank()) ? null : status;
+        Long categoryFilter = categoryId;
+        String nameFilter = (name == null || name.isBlank()) ? null : name;
+
+        return itemService.findByParam(
+                statusFilter,
+                categoryFilter,
+                nameFilter,
+                pageable,
+                request
+        );
     }
 
 
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> softDeleteItem(
+            @PathVariable("id") UUID itemId,
+            @RequestHeader("userId") UUID userId,
+            HttpServletRequest request) {
+        return itemService.softDeleteItem(itemId, userId, request);
+    }
 }
-
-//    @GetMapping
-//    public ResponseEntity<Object> getItems(
-//            @RequestParam(required = false) String status,
-//            @RequestParam(required = false) Long categoryId,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(defaultValue = "createdAt") String sortBy,
-//            @RequestParam(defaultValue = "desc") String sortDir,
-//            HttpServletRequest request
-//    ) {
-//        Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-//        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-//
-//        return itemService.findAllWithFilter(status, categoryId, pageable, request);
-//    }
-
 
 
 
