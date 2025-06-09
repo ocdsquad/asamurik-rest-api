@@ -27,6 +27,18 @@ public class Report {
     @Column(name = "CreatedAt", updatable = false)
     private LocalDateTime createdAt;
 
+    //    @Column(name = "DeletedAt", updatable = false)
+    @Column(name = "DeletedAt")
+    private LocalDateTime deletedAt;
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     public Long getId() {
         return id;
     }

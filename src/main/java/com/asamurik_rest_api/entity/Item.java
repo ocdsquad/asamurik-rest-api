@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -55,7 +56,8 @@ public class Item {
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
-    @Column(name = "DeletedAt", updatable = false)
+    //    @Column(name = "DeletedAt", updatable = false)
+    @Column(name = "DeletedAt")
     private LocalDateTime deletedAt;
 
     @CreatedBy
@@ -65,7 +67,8 @@ public class Item {
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(name = "DeletedBy", updatable = false)
+//    @Column(name = "DeletedBy", updatable = false)
+@Column(name = "DeletedBy")
     private String deletedBy;
 
     public UUID getId() {
@@ -94,10 +97,6 @@ public class Item {
 
     public String getChronology() {
         return chronology;
-    }
-
-    public void setChronology(String chronology) {
-        chronology = chronology;
     }
 
     public String getLocation() {
@@ -186,5 +185,9 @@ public class Item {
 
     public void setDeletedBy(String deletedBy) {
         this.deletedBy = deletedBy;
+    }
+
+    public void setChronology(String chronology) {
+        this.chronology = chronology;
     }
 }

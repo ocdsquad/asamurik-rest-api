@@ -1,36 +1,33 @@
-package com.asamurik_rest_api.dto.update;
+package com.asamurik_rest_api.dto.validation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class UpdateItemDTO {
-
-    @NotNull
-    @JsonProperty("item-id")
-    private UUID id;
+public class UploadItemDTO {
+//    @NotNull(message = "Item ID tidak boleh kosong")
+//    @JsonProperty("item-id")
+//    private UUID id;
 
     @Size(min = 3, max = 100, message = "Nama harus antara 3-100 karakter")
     private String name;
 
-    @Size(min = 20, max = 255, message = "Deskripsi harus antara 20-255")
+    @Size(min = 20, max = 255, message = "Deskripsi harus antara 20-255 karakter")
     private String description;
 
     @Size(min = 20, max = 255, message = "Kronologi harus antara 20-255 karakter")
+    @JsonProperty("chronology")
     private String chronology;
 
-    @Pattern(
-            regexp = "^(FRESH|ON_PROGRESS|FOUND)$",
-            message = "Status hanya boleh (FRESH, ON_PROGRESS, atau FOUND)"
-    )
+    @Pattern(regexp = "^(FRESH|ON_PROGRESS|FOUND)$",
+            message = "Status hanya boleh (FRESH, ON_PROGRESS, atau FOUND)")
     private String status;
+
     @Positive(message = "ID kategori harus positif")
     @JsonProperty("category-id")
     private Long categoryId;
@@ -41,9 +38,9 @@ public class UpdateItemDTO {
     @Size(min = 5, max = 255, message = "Lokasi harus antara 5-255 karakter")
     private String location;
 
-    @Size(max = 255, message = "URL gambar maksimal 255 karakter")
-    @JsonProperty("image-url")
-    private String imageUrl;
+//    @NotNull(message = "Gambar harus diupload")
+//    @JsonProperty("image-url")
+//    private MultipartFile imageUrl;
 
     public String getName() {
         return name;
@@ -100,21 +97,13 @@ public class UpdateItemDTO {
     public void setLocation(String location) {
         this.location = location;
     }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
+//
+//    public MultipartFile getImageUrl() {
+//        return imageUrl;
+//    }
+//
+//    public void setImageUrl(MultipartFile imageUrl) {
+//        this.imageUrl = imageUrl;
+//    }
 }
 

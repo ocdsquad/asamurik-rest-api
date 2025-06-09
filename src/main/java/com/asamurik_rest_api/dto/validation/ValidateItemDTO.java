@@ -1,8 +1,8 @@
 package com.asamurik_rest_api.dto.validation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -19,7 +19,7 @@ public class ValidateItemDTO {
     @Size(min = 20, max = 255, message = "Kronologi harus antara 20-255 karakter")
     private String chronology;
 
-    @NotNull(message = "Status barang tidak boleh null")
+//    @NotNull(message = "Status barang tidak boleh null")
     @Pattern(
             regexp = "^(FRESH|ON_PROGRESS|FOUND)$",
             message = "Status hanya boleh (Fresh, In Progress, atau Found)"
@@ -38,17 +38,6 @@ public class ValidateItemDTO {
     @NotBlank(message = "Lokasi tidak boleh kosong")
     @Size(min = 5, max = 255, message = "Lokasi harus antara 5-255 karakter")
     private String location;
-
-    @JsonProperty("image-url")
-    private String imageUrl;
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
 
     public String getName() {
         return name;
