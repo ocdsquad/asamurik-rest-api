@@ -31,10 +31,6 @@ public class ValidateItemDTO {
     @JsonProperty("category-id")
     private Long categoryId;
 
-    @NotNull(message = "ID kategori tidak boleh null")
-    @JsonProperty("user-id")
-    private UUID userId;
-
     @NotBlank(message = "Lokasi tidak boleh kosong")
     @Size(min = 5, max = 255, message = "Lokasi harus antara 5-255 karakter")
     private String location;
@@ -85,13 +81,5 @@ public class ValidateItemDTO {
 
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public void setUserId(UUID userId) {
-        this.userId = userId;
     }
 }

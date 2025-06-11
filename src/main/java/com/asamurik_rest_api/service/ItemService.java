@@ -139,12 +139,6 @@ public class ItemService implements IService<Item, UUID> {
             item.setCategoryId(category);
         }
 
-        if (dto.getUserId() != null) {
-            User user = new User();
-            user.setId(dto.getUserId());
-            item.setUserId(user);
-        }
-
         return item;
     }
 
