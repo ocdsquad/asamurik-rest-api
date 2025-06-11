@@ -13,6 +13,7 @@ import com.asamurik_rest_api.repository.ReportRepository;
 import com.asamurik_rest_api.repository.UserRepository;
 import com.asamurik_rest_api.utils.FileStorageUtil;
 import com.asamurik_rest_api.utils.FileValidatorUtil;
+import com.asamurik_rest_api.utils.JwtUtil;
 import com.asamurik_rest_api.utils.TransformPagination;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.coyote.BadRequestException;
@@ -52,103 +53,8 @@ public class ItemService implements IService<Item, UUID> {
     @Autowired
     private TransformPagination tp;
 
-
-    public ResponseEntity<Object> saveItem(Item item, MultipartFile imageFile, HttpServletRequest request) {
-        try {
-            if (item == null) {
-                return GlobalErrorHandler.dataTidakDitemukan("ITEM_NULL", request);
-            }
-
-            if (item.getCategoryId() == null || item.getCategoryId().getId() == null ||
-                    item.getUserId() == null || item.getUserId().getId() == null) {
-                return GlobalErrorHandler.dataTidakDitemukan("CATEGORY_OR_USER_OR_ID_NULL", request);
-            }
-
-            Category category = categoryRepository.findById(item.getCategoryId().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Kategori tidak ditemukan"));
-
-            User user = userRepository.findById(item.getUserId().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
-
-            item.setCategoryId(category);
-            item.setUserId(user);
-            item.setCreatedBy(user.getId().toString());
-
-            if (item.getCreatedAt() == null) {
-                item.setCreatedAt(LocalDateTime.now());
-            }
-
-            if (imageFile != null && !imageFile.isEmpty()) {
-                // langsung validasi dan simpan file di sini tanpa mapImageToItem
-                long MAX_FILE_SIZE = 5 * 1024 * 1024;
-                String TEMP_IMAGE_DIR = "uploads/item_images/";
-
-                if (!FileValidatorUtil.isImageFile(imageFile)) {
-                    throw new IllegalArgumentException("Invalid image file type");
-                }
-                if (!FileValidatorUtil.isValidFileSize(imageFile.getSize(), MAX_FILE_SIZE)) {
-                    throw new IllegalArgumentException("Image file size exceeds limit");
-                }
-
-                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
-                item.setImageUrl(uploadedPath);
-            }
-
-            itemRepository.save(item);
-            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM_SAVED", request);
-        } catch (IllegalArgumentException e) {
-            return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return GlobalErrorHandler.terjadiKesalahan("ERROR_SAVE_ITEM", request);
-        }
-    }
-
-
-    public ResponseEntity<Object> updateItem(UUID userId, UUID itemId, Item itemUpdate, MultipartFile imageFile, HttpServletRequest request) {
-        try {
-            Item existingItem = itemRepository.findById(itemId)
-                    .orElseThrow(() -> new RuntimeException("Item dengan ID " + itemId + " tidak ditemukan"));
-
-            // Handle upload file jika ada
-            if (imageFile != null && !imageFile.isEmpty()) {
-                long MAX_FILE_SIZE = 5 * 1024 * 1024;
-                String TEMP_IMAGE_DIR = "uploads/item_images/";
-
-                if (!FileValidatorUtil.isImageFile(imageFile)) {
-                    throw new IllegalArgumentException("Invalid image file type");
-                }
-                if (!FileValidatorUtil.isValidFileSize(imageFile.getSize(), MAX_FILE_SIZE)) {
-                    throw new IllegalArgumentException("Image file size exceeds limit");
-                }
-
-                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
-                existingItem.setImageUrl(uploadedPath);
-            }
-
-            // Update field yang tidak null (partial update)
-            if (itemUpdate.getName() != null) existingItem.setName(itemUpdate.getName());
-            if (itemUpdate.getDescription() != null) existingItem.setDescription(itemUpdate.getDescription());
-            if (itemUpdate.getChronology() != null) existingItem.setChronology(itemUpdate.getChronology());
-            if (itemUpdate.getLocation() != null) existingItem.setLocation(itemUpdate.getLocation());
-            if (itemUpdate.getStatus() != null) existingItem.setStatus(itemUpdate.getStatus());
-            if (itemUpdate.getCategoryId() != null) existingItem.setCategoryId(itemUpdate.getCategoryId());
-            if (itemUpdate.getUserId() != null) existingItem.setUserId(itemUpdate.getUserId());
-
-            existingItem.setUpdatedAt(LocalDateTime.now());
-            existingItem.setUpdatedBy(userId.toString());
-
-            itemRepository.save(existingItem);
-
-            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM_UPDATED", request);
-        } catch (IllegalArgumentException e) {
-            return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return GlobalErrorHandler.terjadiKesalahan("ERROR_UPDATE_ITEM", request);
-        }
-    }
-
+    @Autowired
+    private JwtUtil jwtTokenUtil;
 
     public Item mapToUploadItem(UploadItemDTO dto) throws BadRequestException {
         Item item = new Item();
@@ -243,60 +149,6 @@ public class ItemService implements IService<Item, UUID> {
     }
 
 
-    @Transactional
-    public ResponseEntity<Object> softDeleteItem(UUID itemId, UUID userId, HttpServletRequest request) {
-        try {
-            Item item = itemRepository.findById(itemId)
-                    .orElseThrow(() -> new RuntimeException("Item tidak ditemukan"));
-
-            if (item.getDeletedAt() != null) {
-                return GlobalErrorHandler.dataTidakDitemukan("Item sudah dihapus", request);
-            }
-
-            LocalDateTime now = LocalDateTime.now();
-            item.setDeletedAt(now);
-            item.setDeletedBy(userId.toString());
-            item.setUpdatedAt(now);
-            item.setUpdatedBy(userId.toString());
-
-            // Soft delete related reports
-            List<Report> relatedReports = reportRepository.findByItemId(itemId);
-            for (Report report : relatedReports) {
-                if (report.getDeletedAt() == null) {
-                    report.setDeletedAt(now);
-                }
-            }
-
-            reportRepository.saveAll(relatedReports);
-            itemRepository.save(item);
-
-            return GlobalSuccessHandler.dataBerhasilDihapus(request);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return GlobalErrorHandler.terjadiKesalahan("ERROR_DELETE_ITEM", request);
-        }
-    }
-
-
-
-    public ResponseEntity<Object> findByUserId(UUID userId, HttpServletRequest request) {
-        try {
-            List<Item> items = itemRepository.findByUserId(userId);
-
-            if (items.isEmpty()) {
-                return GlobalErrorHandler.dataTidakDitemukan("NO_ITEMS_FOUND_FOR_USER", request);
-            }
-
-            List<ResponseItemDTO> dtos = mapToResponseDTO(items);
-
-            return GlobalSuccessHandler.dataDitemukan(dtos, request);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return GlobalErrorHandler.terjadiKesalahan("ERROR_FIND_BY_USER_ID", request);
-        }
-    }
-
-
     public ResponseEntity<Object> findByItemId(UUID itemId, HttpServletRequest request) {
         try {
             Optional<Item> optionalItem = itemRepository.findByItemId(itemId);
@@ -366,20 +218,193 @@ public class ItemService implements IService<Item, UUID> {
 
 
     @Override
-    public ResponseEntity<Object> delete(UUID id, HttpServletRequest request) {
-        // Implementasi delete jika diperlukan
-        return null;
-    }
-
+    public ResponseEntity<Object> delete(UUID id, HttpServletRequest request) {return null;}
 
     @Override
     public ResponseEntity<Object> findAll(Pageable pageable, HttpServletRequest request) {
         return null;
     }
 
-
     @Override
     public ResponseEntity<Object> findById(UUID id, HttpServletRequest request) {
         return null;
     }
+
+
+    public ResponseEntity<Object> saveItem(Item item, MultipartFile imageFile, HttpServletRequest request) {
+        try {
+            if (item == null) {
+                return GlobalErrorHandler.dataTidakDitemukan("ITEM_NULL", request);
+            }
+
+            if (item.getCategoryId() == null || item.getCategoryId().getId() == null) {
+                return GlobalErrorHandler.dataTidakDitemukan("CATEGORY_ID_NULL", request);
+            }
+
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return GlobalErrorHandler.dataTidakDitemukan("TOKEN_TIDAK_VALID", request);
+            }
+
+            String token = authHeader.substring(7);
+            UUID userId = UUID.fromString(jwtTokenUtil.getUserIdFromToken(token));
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+
+            Category category = categoryRepository.findById(item.getCategoryId().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Kategori tidak ditemukan"));
+
+            item.setCategoryId(category);
+            item.setUserId(user);
+            item.setCreatedBy(userId.toString());
+
+            if (item.getCreatedAt() == null) {
+                item.setCreatedAt(LocalDateTime.now());
+            }
+
+            if (imageFile != null && !imageFile.isEmpty()) {
+                long MAX_FILE_SIZE = 5 * 1024 * 1024;
+                String TEMP_IMAGE_DIR = "uploads/item_images/";
+
+                if (!FileValidatorUtil.isImageFile(imageFile)) {
+                    throw new IllegalArgumentException("Invalid image file type");
+                }
+
+                if (!FileValidatorUtil.isValidFileSize(imageFile.getSize(), MAX_FILE_SIZE)) {
+                    throw new IllegalArgumentException("Image file size exceeds limit");
+                }
+
+                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
+                item.setImageUrl(uploadedPath);
+            }
+
+            itemRepository.save(item);
+            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM_SAVED", request);
+        } catch (IllegalArgumentException e) {
+            return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return GlobalErrorHandler.terjadiKesalahan("ERROR_SAVE_ITEM", request);
+        }
+    }
+
+
+    public ResponseEntity<Object> updateItem(UUID itemId, Item itemUpdate, MultipartFile imageFile, HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return GlobalErrorHandler.dataTidakDitemukan("TOKEN_TIDAK_VALID", request);
+            }
+
+            String token = authHeader.substring(7);
+            UUID userId = UUID.fromString(jwtTokenUtil.getUserIdFromToken(token));
+
+            Item existingItem = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new RuntimeException("Item tidak ditemukan"));
+
+            if (imageFile != null && !imageFile.isEmpty()) {
+                long MAX_FILE_SIZE = 5 * 1024 * 1024;
+                String TEMP_IMAGE_DIR = "uploads/item_images/";
+
+                if (!FileValidatorUtil.isImageFile(imageFile)) {
+                    throw new IllegalArgumentException("Invalid image file type");
+                }
+
+                if (!FileValidatorUtil.isValidFileSize(imageFile.getSize(), MAX_FILE_SIZE)) {
+                    throw new IllegalArgumentException("Image file size exceeds limit");
+                }
+
+                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
+                existingItem.setImageUrl(uploadedPath);
+            }
+
+            if (itemUpdate.getName() != null) existingItem.setName(itemUpdate.getName());
+            if (itemUpdate.getDescription() != null) existingItem.setDescription(itemUpdate.getDescription());
+            if (itemUpdate.getChronology() != null) existingItem.setChronology(itemUpdate.getChronology());
+            if (itemUpdate.getLocation() != null) existingItem.setLocation(itemUpdate.getLocation());
+            if (itemUpdate.getStatus() != null) existingItem.setStatus(itemUpdate.getStatus());
+            if (itemUpdate.getCategoryId() != null) existingItem.setCategoryId(itemUpdate.getCategoryId());
+
+            existingItem.setUpdatedAt(LocalDateTime.now());
+            existingItem.setUpdatedBy(userId.toString());
+
+            itemRepository.save(existingItem);
+            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM_UPDATED", request);
+        } catch (IllegalArgumentException e) {
+            return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return GlobalErrorHandler.terjadiKesalahan("ERROR_UPDATE_ITEM", request);
+        }
+    }
+
+
+    public ResponseEntity<Object> softDeleteItem(UUID itemId, HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return GlobalErrorHandler.dataTidakDitemukan("TOKEN_TIDAK_VALID", request);
+            }
+
+            String token = authHeader.substring(7);
+            UUID userId = UUID.fromString(jwtTokenUtil.getUserIdFromToken(token));
+
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new RuntimeException("Item tidak ditemukan"));
+
+            if (item.getDeletedAt() != null) {
+                return GlobalErrorHandler.dataTidakDitemukan("Item sudah dihapus", request);
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            item.setDeletedAt(now);
+            item.setDeletedBy(userId.toString());
+            item.setUpdatedAt(now);
+            item.setUpdatedBy(userId.toString());
+
+            List<Report> relatedReports = reportRepository.findByItemId(itemId);
+            for (Report report : relatedReports) {
+                if (report.getDeletedAt() == null) {
+                    report.setDeletedAt(now);
+                }
+            }
+
+            reportRepository.saveAll(relatedReports);
+            itemRepository.save(item);
+
+            return GlobalSuccessHandler.dataBerhasilDihapus(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return GlobalErrorHandler.terjadiKesalahan("ERROR_DELETE_ITEM", request);
+        }
+    }
+
+    public ResponseEntity<Object> findByUserId(HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return GlobalErrorHandler.dataTidakDitemukan("TOKEN_TIDAK_VALID", request);
+            }
+
+            String token = authHeader.substring(7);
+            UUID userId = UUID.fromString(jwtTokenUtil.getUserIdFromToken(token));
+
+            List<Item> items = itemRepository.findByUserId(userId);
+
+            if (items.isEmpty()) {
+                return GlobalErrorHandler.dataTidakDitemukan("TIDAK_ADA_ITEM_USER", request);
+            }
+
+            return GlobalSuccessHandler.dataDitemukan(items, request);
+        } catch (IllegalArgumentException e) {
+            return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return GlobalErrorHandler.terjadiKesalahan("ERROR_FIND_ITEM_USER", request);
+        }
+    }
+
+
+
 }
