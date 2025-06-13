@@ -144,7 +144,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             User userDB = userOptional.get();
             if (!userDB.isActive()) {
-                return GlobalErrorHandler.akunBelumAktif(null, request);
+                return GlobalErrorHandler.akunBelumAktif(null, userDB.getEmail(), request);
             }
 
             if (!BcryptImpl.verifyHash(user.getPassword(), userDB.getPassword())) {
@@ -229,7 +229,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             User userDB = userOptional.get();
 
             if (!userDB.isActive()) {
-                return GlobalErrorHandler.akunBelumAktif(null, request);
+                return GlobalErrorHandler.akunBelumAktif(null, userDB.getEmail(), request);
             }
 
             String otp = OtpGenerator.generateOtp();
@@ -278,7 +278,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             User userDB = userOptional.get();
             if (!userDB.isActive()) {
-                return GlobalErrorHandler.akunBelumAktif(null, request);
+                return GlobalErrorHandler.akunBelumAktif(null, userDB.getEmail(), request);
             }
 
             if (!BcryptImpl.verifyHash(user.getOtp(), userDB.getOtp())) {
@@ -321,7 +321,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             User userDB = userOptional.get();
 
             if (!userDB.isActive()) {
-                return GlobalErrorHandler.akunBelumAktif(null, request);
+                return GlobalErrorHandler.akunBelumAktif(null, userDB.getEmail(), request);
             }
 
             if (!BcryptImpl.verifyHash(user.getToken(), userDB.getToken())) {
