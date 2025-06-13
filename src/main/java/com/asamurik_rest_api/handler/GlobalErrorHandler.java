@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 public class GlobalErrorHandler {
 
 
@@ -47,8 +49,8 @@ public class GlobalErrorHandler {
         return new ResponseHandler().handleResponse("Akun sudah aktif", HttpStatus.CONFLICT, null, errorCode, request);
     }
 
-    public static ResponseEntity<Object> akunBelumAktif(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Akun belum aktif", HttpStatus.FORBIDDEN, null, errorCode, request);
+    public static ResponseEntity<Object> akunBelumAktif(String errorCode, String email, HttpServletRequest request) {
+        return new ResponseHandler().handleResponse("Akun belum aktif", HttpStatus.FORBIDDEN, Map.of("email", email), errorCode, request);
     }
 
     public static ResponseEntity<Object> usernameAtauPasswordSalah(String errorCode, HttpServletRequest request) {
