@@ -8,6 +8,7 @@ public class UserProfileResponse {
     private String email;
     private String phoneNumber;
     private String imageUrl;
+    private boolean isActive;
 
     public UUID getId() {
         return id;
@@ -47,5 +48,13 @@ public class UserProfileResponse {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

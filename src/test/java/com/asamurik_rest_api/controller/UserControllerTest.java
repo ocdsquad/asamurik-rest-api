@@ -16,6 +16,8 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 
@@ -80,18 +82,18 @@ public class UserControllerTest extends AbstractTestNGSpringContextTests {
     @Test(priority = 80)
     public void testUpdateUserProfile_ValidToken() throws Exception {
         String token = "validToken";
-        String username = "testUser";
+        UUID userId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000"); // Example UUID
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
         ValidateUpdateUserDTO userDTO = new ValidateUpdateUserDTO();
         userDTO.setFullname("Test User");
 
         when(jwtUtil.validateToken(token)).thenReturn(true);
-        when(jwtUtil.getUsernameFromToken(token)).thenReturn(username);
+        when(jwtUtil.getUserIdFromToken(token)).thenReturn(String.valueOf(userId));
         when(request.getParameter("fullname")).thenReturn("Test User");
-        when(userService.updateByUsername(eq(username), eq(file), any(), any(HttpServletRequest.class)))
+        when(userService.updateById(eq(userId), eq(file), any(), any(HttpServletRequest.class)))
                 .thenReturn(ResponseEntity.ok("Profile updated"));
 
-        ResponseEntity<Object> response = userController.updateUserProfile(token, file, request);
+        ResponseEntity<Object> response = userController.updateUserProfile(userDTO, token, file, request);
         ResponseEntity<Object> expectedResponse = new ResponseHandler().handleResponse(
                 ErrorCode.UNAUTHORIZED.getMessage(),
                 HttpStatus.UNAUTHORIZED,
@@ -103,17 +105,19 @@ public class UserControllerTest extends AbstractTestNGSpringContextTests {
         assertEquals(response.getBody(), "Profile updated");
         verify(jwtUtil).validateToken(token);
         verify(jwtUtil).getUsernameFromToken(token);
-        verify(userService).updateByUsername(eq(username), eq(file), any(), any(HttpServletRequest.class));
+        verify(userService).updateById(eq(userId), eq(file), any(), any(HttpServletRequest.class));
     }
 
     @Test(priority = 90)
     public void testUpdateUserProfile_InvalidToken() {
         String token = "invalidToken";
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+        ValidateUpdateUserDTO userDTO = new ValidateUpdateUserDTO();
+        userDTO.setFullname("Test User");
 
         when(jwtUtil.validateToken(token)).thenReturn(false);
 
-        ResponseEntity<Object> response = userController.updateUserProfile(token, file, request);
+        ResponseEntity<Object> response = userController.updateUserProfile(userDTO, token, file, request);
         ResponseEntity<Object> expectedResponse = new ResponseHandler().handleResponse(
                 ErrorCode.UNAUTHORIZED.getMessage(),
                 HttpStatus.UNAUTHORIZED,
