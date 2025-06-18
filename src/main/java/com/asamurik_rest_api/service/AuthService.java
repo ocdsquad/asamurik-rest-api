@@ -15,6 +15,8 @@ import com.asamurik_rest_api.utils.RandomTokenUtil;
 import com.asamurik_rest_api.utils.SendMailUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +42,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
     @Autowired
     private JwtUtil jwtUtil;
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @Override
     public ResponseEntity<Object> register(User user, HttpServletRequest request) {
@@ -70,6 +73,8 @@ public class AuthService implements UserDetailsService, IAuth<User> {
                     otp,
                     "ver_otp.html"
             );
+            logger.info("OTP sent to email: {}", user.getEmail());
+            logger.debug("OTP: {}", otp);
 
             Thread.sleep(1000);
 
