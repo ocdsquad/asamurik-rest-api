@@ -39,4 +39,26 @@ public class FileStorageUtil {
         }
         return filePath.toString();
     }
+
+    public static boolean deleteFile(String filePath) {
+        if (filePath != null) {
+            try {
+                Path path = Paths.get(filePath);
+                if (Files.exists(path)) {
+                    Files.delete(path);
+                    logger.info("File deleted successfully: {}", filePath);
+                    return true;
+                } else {
+                    logger.warn("File not found for deletion: {}", filePath);
+                    return false;
+                }
+            } catch (IOException e) {
+                logger.error("Error deleting file: {}", e.getMessage(), e);
+                return false;
+            }
+        }
+
+        logger.warn("File path is null, unable to delete file.");
+        return false;
+    }
 }
