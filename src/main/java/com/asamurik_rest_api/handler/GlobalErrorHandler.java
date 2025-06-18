@@ -61,6 +61,6 @@ public class GlobalErrorHandler {
         return new ResponseHandler().handleResponse("Token yang anda masukkan salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
     }
     public static ResponseEntity<Object> typeImageSalah(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Type image yang anda masukkan salah, silahkan masukkan file bertipe jpg,jpeg,png", HttpStatus.UNAUTHORIZED, null, errorCode, request);
+        return new ResponseHandler().handleResponse("Type image yang anda masukkan salah, silahkan masukkan file bertipe jpg,jpeg,png", HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, errorCode, request);
     }
 }
