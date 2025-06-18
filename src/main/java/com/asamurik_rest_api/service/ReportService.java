@@ -17,6 +17,8 @@ import com.asamurik_rest_api.utils.OtpGenerator;
 import com.asamurik_rest_api.utils.SendMailUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ import java.util.UUID;
 @Service
 @Transactional
 public class ReportService implements IService<Report, Long> {
+    private static final Logger log = LoggerFactory.getLogger(ReportService.class);
     @Autowired
     private ModelMapper modelMapper;
 
@@ -99,7 +102,10 @@ public class ReportService implements IService<Report, Long> {
         try {
 
             String otp = OtpGenerator.generateOtp();
-            User user = userRepository.findByEmail(report.getEmail()).orElseGet(() -> {
+            User user = userRepository.findByEmail(report.getEmail()).map(existingUser -> {
+                existingUser.setOtp(BcryptImpl.hash(otp));
+                return userRepository.save(existingUser);
+            }).orElseGet(() -> {
                 User newUser = new User();
                 newUser.setEmail(report.getEmail());
                 newUser.setFullname(report.getFullname());
@@ -121,6 +127,8 @@ public class ReportService implements IService<Report, Long> {
 
             response.put("otp", otp);
             OTPResponse otpResponse = mapToOTPResponseDTO(user);
+
+            log.debug("OTP sent to user: {}", otp);
 
             return new ResponseHandler().handleResponse(
                     "Silahkan masukkan OTP yang telah dikirim ke email anda untuk mengirim laporan",
