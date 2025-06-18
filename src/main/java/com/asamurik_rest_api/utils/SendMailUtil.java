@@ -47,6 +47,7 @@ public class SendMailUtil {
                         "TLS",
                         strImage
                 ));
+                logger.debug(content);
 
                 newThread.start();
             } catch (Exception e) {
@@ -69,6 +70,9 @@ public class SendMailUtil {
                     "TLS",
                     null
             ));
+            logger.debug("Sending email to: {}", email);
+            logger.debug("Email subject: {}", subject);
+            logger.debug("Email message: {}", message);
 
             newThread.start();
         } catch (Exception e) {
