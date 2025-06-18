@@ -8,8 +8,13 @@ import com.asamurik_rest_api.entity.User;
 import com.asamurik_rest_api.handler.GlobalErrorHandler;
 import com.asamurik_rest_api.handler.ResponseHandler;
 import com.asamurik_rest_api.repository.UserRepository;
+import com.asamurik_rest_api.security.BcryptImpl;
 import com.asamurik_rest_api.utils.FileStorageUtil;
 import com.asamurik_rest_api.utils.FileValidatorUtil;
+import com.asamurik_rest_api.utils.OtpGenerator;
+import com.asamurik_rest_api.utils.SendMailUtil;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -22,7 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,6 +42,9 @@ public class UserService implements IService<User, UUID> {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private Cloudinary cloudinary;
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -73,43 +83,71 @@ public class UserService implements IService<User, UUID> {
 
     }
 
-    public ResponseEntity<Object> updateByUsername(String username, MultipartFile file, User user, HttpServletRequest request) {
-        // Check if the user exists
-//        Optional<User> existingUser = userRepository.findById(id);
-        // diganti nanti kalo claims nya udah diubah jadi id bukan username
+    public ResponseEntity<Object> updateById(UUID userId, MultipartFile file, User user, HttpServletRequest request) {
         //TODO: Update this to use the correct ID from the JWT claims
         //TODO: Bikin logic buat upload foto profile
-        boolean isValidFile = false;
-        if(file != null){
-            logger.debug("Received file: {}", file.getOriginalFilename());
-            if(FileValidatorUtil.isImageFile(file)) {
-                isValidFile = true;
-            } else {
-                logger.debug("Invalid file type: {}", file.getOriginalFilename());
-                return GlobalErrorHandler.typeImageSalah(null, request);
-            }
-        }
         try {
-            Optional<User> existingUserByUsername = userRepository.findByUsername(username);
+            Optional<User> existingUser = userRepository.findById(userId);
             long maxSize = 5 * 1024 * 1024; // 5 MB
 
-            if (existingUserByUsername.isPresent()) {
-                User updatedUser = existingUserByUsername.get();
+            if (existingUser.isPresent()) {
+                User updatedUser = existingUser.get();
+
                 // Update the user fields as necessary
-                if (user.getFullname() != null && !user.getFullname().isEmpty()) {
-                    logger.debug("Updating user fullname to: {}", user.getFullname());
-                    updatedUser.setFullname(user.getFullname());
-                    updatedUser.setUpdatedAt(LocalDateTime.now());
-                    updatedUser.setUpdatedBy(updatedUser.getUsername());
+                logger.debug("Updating user fullname to: {}", user.getFullname());
+                updatedUser.setFullname(user.getFullname());
+                logger.debug("Updating user phone number to: {}", user.getPhoneNumber());
+                updatedUser.setPhoneNumber(user.getPhoneNumber());
+
+                if (!updatedUser.getEmail().equals(user.getEmail())) {
+                    // Check if the email already exists
+                    Optional<User> existingUserByEmail = userRepository.findByEmail(user.getEmail());
+                    if (existingUserByEmail.isPresent()) {
+                        return GlobalErrorHandler.dataSudahTerdaftar(null, request, "Email");
+                    }
+
+                    updatedUser.setActive(false);
+                    String otp = OtpGenerator.generateOtp();
+                    updatedUser.setOtp(BcryptImpl.hash(otp));
+
+                    SendMailUtil.sendOTP(
+                            "OTP Verifikasi Email",
+                            user.getFullname(),
+                            user.getEmail(),
+                            otp,
+                            "ver_otp.html"
+                    );
+
+                    Thread.sleep(1000);
                 }
-                if (isValidFile) {
-                    logger.debug("File is valid: {}", file.getOriginalFilename());
-                    String imageUrl = FileStorageUtil.saveFile(file, "uploads/profile_images/");
-                    logger.debug("Image URL: {}", imageUrl);
-                    updatedUser.setImageUrl(imageUrl);
-                    updatedUser.setUpdatedAt(LocalDateTime.now());
-                    updatedUser.setUpdatedBy(updatedUser.getUsername());
+
+                logger.debug("Updating user email to: {}", user.getEmail());
+                updatedUser.setEmail(user.getEmail());
+
+                if (user.getImageUrl() == null) {
+                    if (file == null) {
+                        deleteProfileImage(updatedUser);
+//                    FileStorageUtil.deleteFile(updatedUser.getImageUrl()); // Delete the old image if it exists
+                        updatedUser.setImageUrl(null);
+                    } else {
+                        logger.debug("Received file: {}", file.getOriginalFilename());
+                        if (!FileValidatorUtil.isImageFile(file)) {
+                            logger.debug("Invalid file type: {}", file.getOriginalFilename());
+                            return GlobalErrorHandler.typeImageSalah(null, request);
+                        }
+
+                        logger.debug("File is valid: {}", file.getOriginalFilename());
+                        String imageUrl = uploadProfileImage(file);
+//                    String imageUrl = FileStorageUtil.saveFile(file, "uploads/profile_images/");
+//                    logger.debug("Image URL: {}", imageUrl);
+                        deleteProfileImage(updatedUser); // Delete the old image if it exists
+//                    FileStorageUtil.deleteFile(updatedUser.getImageUrl()); // Delete the old image if it exists
+                        updatedUser.setImageUrl(imageUrl);
+                    }
                 }
+
+                updatedUser.setUpdatedAt(LocalDateTime.now());
+                updatedUser.setUpdatedBy(updatedUser.getUsername());
 
                 logger.debug("Saving updated user: {}", updatedUser);
                 userRepository.save(updatedUser);
@@ -200,5 +238,38 @@ public class UserService implements IService<User, UUID> {
         return modelMapper.map(user, UserProfileResponse.class);
     }
 
+    private String uploadProfileImage(MultipartFile file) throws IOException {
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "resource_type", "image",
+                "public_id", "profile_images/" + UUID.randomUUID(),
+                "overwrite", true
+        ));
+        String imageUrl = uploadResult.get("secure_url").toString();
+        logger.debug("Image URL: {}", imageUrl);
+        return imageUrl;
+    }
 
+    private void deleteProfileImage(User updatedUser) throws IOException {
+        if (updatedUser.getImageUrl() != null) {
+            Map destroyResult = cloudinary.uploader().destroy(extractPublicId(updatedUser.getImageUrl()), ObjectUtils.emptyMap());
+            logger.debug("Image destroyed: {}", destroyResult.get("result"));
+        }
+    }
+
+    public String extractPublicId(String imageUrl) {
+        String base = "/upload/";
+        int index = imageUrl.indexOf(base);
+        if (index == -1) return null;
+
+        String path = imageUrl.substring(index + base.length());
+        if (path.startsWith("v") && path.contains("/")) {
+            path = path.substring(path.indexOf("/") + 1);
+        }
+
+        int lastDot = path.lastIndexOf('.');
+        if (lastDot != -1) {
+            path = path.substring(0, lastDot);
+        }
+        return path;
+    }
 }
