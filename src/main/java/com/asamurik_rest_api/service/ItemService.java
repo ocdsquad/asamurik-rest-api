@@ -15,9 +15,13 @@ import com.asamurik_rest_api.utils.FileStorageUtil;
 import com.asamurik_rest_api.utils.FileValidatorUtil;
 import com.asamurik_rest_api.utils.JwtUtil;
 import com.asamurik_rest_api.utils.TransformPagination;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -55,6 +59,11 @@ public class ItemService implements IService<Item, UUID> {
 
     @Autowired
     private JwtUtil jwtTokenUtil;
+
+    @Autowired
+    private Cloudinary cloudinary;
+
+    private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
 
     public Item mapToUploadItem(UploadItemDTO dto) throws BadRequestException {
         Item item = new Item();
@@ -269,8 +278,9 @@ public class ItemService implements IService<Item, UUID> {
                     throw new IllegalArgumentException("Image file size exceeds limit");
                 }
 
-                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
-                item.setImageUrl(uploadedPath);
+                String imageUrl = uploadImage(imageFile);
+//                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
+                item.setImageUrl(imageUrl);
             }
 
             itemRepository.save(item);
@@ -309,8 +319,10 @@ public class ItemService implements IService<Item, UUID> {
                     throw new IllegalArgumentException("Image file size exceeds limit");
                 }
 
-                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
-                existingItem.setImageUrl(uploadedPath);
+                String imageUrl = uploadImage(imageFile);
+                deleteImage(existingItem); // Hapus gambar lama jika ada
+//                String uploadedPath = FileStorageUtil.saveFile(imageFile, TEMP_IMAGE_DIR);
+                existingItem.setImageUrl(imageUrl);
             }
 
             if (itemUpdate.getName() != null) existingItem.setName(itemUpdate.getName());
@@ -399,6 +411,38 @@ public class ItemService implements IService<Item, UUID> {
         }
     }
 
+    private String uploadImage(MultipartFile file) throws IOException {
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "resource_type", "image",
+                "public_id", "item_images/" + UUID.randomUUID(),
+                "overwrite", true
+        ));
+        String imageUrl = uploadResult.get("secure_url").toString();
+        logger.debug("Image URL: {}", imageUrl);
+        return imageUrl;
+    }
 
+    private void deleteImage(Item updatedItem) throws IOException {
+        if (updatedItem.getImageUrl() != null) {
+            Map destroyResult = cloudinary.uploader().destroy(extractPublicId(updatedItem.getImageUrl()), ObjectUtils.emptyMap());
+            logger.debug("Image destroyed: {}", destroyResult.get("result"));
+        }
+    }
 
+    public String extractPublicId(String imageUrl) {
+        String base = "/upload/";
+        int index = imageUrl.indexOf(base);
+        if (index == -1) return null;
+
+        String path = imageUrl.substring(index + base.length());
+        if (path.startsWith("v") && path.contains("/")) {
+            path = path.substring(path.indexOf("/") + 1);
+        }
+
+        int lastDot = path.lastIndexOf('.');
+        if (lastDot != -1) {
+            path = path.substring(0, lastDot);
+        }
+        return path;
+    }
 }
