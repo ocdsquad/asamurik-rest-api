@@ -42,7 +42,7 @@ public class ItemController {
             @RequestParam(name = "category-id", required = false) Long categoryId,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String sort,
             HttpServletRequest request
     ) {

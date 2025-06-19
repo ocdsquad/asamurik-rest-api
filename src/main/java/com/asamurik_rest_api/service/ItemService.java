@@ -32,10 +32,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.net.URI;
 
 
 @Service
@@ -157,7 +159,7 @@ public class ItemService implements IService<Item, UUID> {
             Optional<Item> optionalItem = itemRepository.findByItemId(itemId);
 
             if (optionalItem.isEmpty()) {
-                return GlobalErrorHandler.dataTidakDitemukan("ITEM_NOT_FOUND", request);
+                return GlobalErrorHandler.dataTidakDitemukan("ITEM NOT FOUND", request);
             }
 
             Item item = optionalItem.get();
@@ -183,6 +185,8 @@ public class ItemService implements IService<Item, UUID> {
                     return GlobalErrorHandler.dataTidakDitemukan("INVALID_STATUS", request);
                 }
             }
+            logger.info("Received status filter: " + statusStr);
+
 
             Page<Item> page = itemRepository.findFiltered(status, categoryId, namePart == null ? null : "%" + namePart.toLowerCase() + "%", pageable);
 
@@ -237,7 +241,7 @@ public class ItemService implements IService<Item, UUID> {
     public ResponseEntity<Object> saveItem(Item item, MultipartFile imageFile, HttpServletRequest request) {
         try {
             if (item == null) {
-                return GlobalErrorHandler.dataTidakDitemukan("ITEM_NULL", request);
+                return GlobalErrorHandler.dataTidakDitemukan("ITEM NULL", request);
             }
 
             if (item.getCategoryId() == null || item.getCategoryId().getId() == null) {
@@ -284,7 +288,7 @@ public class ItemService implements IService<Item, UUID> {
             }
 
             itemRepository.save(item);
-            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM_SAVED", request);
+            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM SAVED", request);
         } catch (IllegalArgumentException e) {
             return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
         } catch (Exception e) {
@@ -336,7 +340,7 @@ public class ItemService implements IService<Item, UUID> {
             existingItem.setUpdatedBy(userId.toString());
 
             itemRepository.save(existingItem);
-            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM_UPDATED", request);
+            return GlobalSuccessHandler.dataBerhasilDisimpan("ITEM UPDATED", request);
         } catch (IllegalArgumentException e) {
             return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
         } catch (Exception e) {
@@ -407,7 +411,7 @@ public class ItemService implements IService<Item, UUID> {
             return GlobalErrorHandler.dataTidakDitemukan(e.getMessage(), request);
         } catch (Exception e) {
             e.printStackTrace();
-            return GlobalErrorHandler.terjadiKesalahan("ERROR_FIND_ITEM_USER", request);
+            return GlobalErrorHandler.terjadiKesalahan("ERROR FINDING USER", request);
         }
     }
 
@@ -422,27 +426,71 @@ public class ItemService implements IService<Item, UUID> {
         return imageUrl;
     }
 
+//    private void deleteImage(Item updatedItem) throws IOException {
+//        if (updatedItem.getImageUrl() != null) {
+//            Map destroyResult = cloudinary.uploader().destroy(extractPublicId(updatedItem.getImageUrl()), ObjectUtils.emptyMap());
+//            logger.debug("Image destroyed: {}", destroyResult.get("result"));
+//        }
+//    }
+
+//    public String extractPublicId(String imageUrl) {
+//        String base = "/upload/";
+//        int index = imageUrl.indexOf(base);
+//        if (index == -1) return null;
+//
+//        String path = imageUrl.substring(index + base.length());
+//        if (path.startsWith("v") && path.contains("/")) {
+//            path = path.substring(path.indexOf("/") + 1);
+//        }
+//
+//        int lastDot = path.lastIndexOf('.');
+//        if (lastDot != -1) {
+//            path = path.substring(0, lastDot);
+//        }
+//        return path;
+//    }
+
+
     private void deleteImage(Item updatedItem) throws IOException {
-        if (updatedItem.getImageUrl() != null) {
-            Map destroyResult = cloudinary.uploader().destroy(extractPublicId(updatedItem.getImageUrl()), ObjectUtils.emptyMap());
-            logger.debug("Image destroyed: {}", destroyResult.get("result"));
+        String publicId = extractPublicId(updatedItem.getImageUrl());
+        logger.debug("Extracted public_id: {}", publicId); // Tampilkan hasil public_id di log
+
+        if (publicId != null) {
+            Map destroyResult = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            logger.debug("Image destroyed: {}", destroyResult.get("result")); // Lihat hasil penghapusan di log
+        } else {
+            logger.warn("Public ID could not be extracted, image not deleted.");
         }
     }
+
 
     public String extractPublicId(String imageUrl) {
-        String base = "/upload/";
-        int index = imageUrl.indexOf(base);
-        if (index == -1) return null;
+        try {
+            URI uri = new URI(imageUrl);
+            String path = uri.getPath(); // contoh hasil: /yourcloud/image/upload/v1718800000/item_images/abc123.jpg
 
-        String path = imageUrl.substring(index + base.length());
-        if (path.startsWith("v") && path.contains("/")) {
-            path = path.substring(path.indexOf("/") + 1);
-        }
+            // Ambil bagian setelah "/upload/"
+            String[] segments = path.split("/upload/");
+            if (segments.length < 2) return null;
 
-        int lastDot = path.lastIndexOf('.');
-        if (lastDot != -1) {
-            path = path.substring(0, lastDot);
+            String uploadPath = segments[1]; // "v1718800000/item_images/abc123.jpg"
+
+            // Hilangkan versi (misal: v1718800000/)
+            if (uploadPath.startsWith("v")) {
+                uploadPath = uploadPath.substring(uploadPath.indexOf("/") + 1);
+            }
+
+            // Hapus ekstensi .jpg atau lainnya
+            int lastDot = uploadPath.lastIndexOf('.');
+            if (lastDot != -1) {
+                uploadPath = uploadPath.substring(0, lastDot);
+            }
+
+            return uploadPath; // hasil akhir: "item_images/abc123"
+        } catch (URISyntaxException e) {
+            logger.error("Invalid image URL: {}", imageUrl);
+            return null;
         }
-        return path;
     }
+
 }
