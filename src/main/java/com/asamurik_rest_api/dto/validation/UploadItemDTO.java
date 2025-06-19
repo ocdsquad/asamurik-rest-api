@@ -21,7 +21,7 @@ public class UploadItemDTO {
     private String description;
 
     @Size(min = 20, max = 255, message = "Kronologi harus antara 20-255 karakter")
-    @JsonProperty("chronology")
+//    @JsonProperty("chronology")
     private String chronology;
 
     @Pattern(regexp = "^(FRESH|ON_PROGRESS|FOUND)$",
@@ -29,10 +29,10 @@ public class UploadItemDTO {
     private String status;
 
     @Positive(message = "ID kategori harus positif")
-    @JsonProperty("category-id")
+//    @JsonProperty("category-id")
     private Long categoryId;
 
-    @JsonProperty("user-id")
+//    @JsonProperty("user-id")
     private UUID userId;
 
     @Size(min = 5, max = 255, message = "Lokasi harus antara 5-255 karakter")

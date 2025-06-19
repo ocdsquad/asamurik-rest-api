@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 
 public class GlobalSuccessHandler {
     public static ResponseEntity<Object> dataSudahTerdaftar(String errorCode, HttpServletRequest request, String name) {
-        return new ResponseHandler().handleResponse(name + " sudah terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
+        return new ResponseHandler().handleResponse(name + " is already registered", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> dataBerhasilDisimpan(HttpServletRequest request) {
@@ -18,14 +18,14 @@ public class GlobalSuccessHandler {
     }
 
     public static ResponseEntity<Object> dataBerhasilDiubah(HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA BERHASIL DIUBAH", HttpStatus.OK, null, null, request);
+        return new ResponseHandler().handleResponse("DATA UPDATED SUCCESSFULLY", HttpStatus.OK, null, null, request);
     }
 
     public static ResponseEntity<Object> dataBerhasilDihapus(HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA BERHASIL DIHAPUS", HttpStatus.OK, null, null, request);
+        return new ResponseHandler().handleResponse("DATA DELETED SUCCESSFULLY", HttpStatus.OK, null, null, request);
     }
 
     public static ResponseEntity<Object> dataDitemukan(Object data, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA DITEMUKAN", HttpStatus.OK, data, null, request);
+        return new ResponseHandler().handleResponse("DATA FOUND", HttpStatus.OK, data, null, request);
     }
 }
