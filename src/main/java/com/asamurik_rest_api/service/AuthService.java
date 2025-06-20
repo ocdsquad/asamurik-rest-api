@@ -58,13 +58,26 @@ public class AuthService implements UserDetailsService, IAuth<User> {
 
             String otp = OtpGenerator.generateOtp();
 
-            user.setOtp(BcryptImpl.hash(otp));
-            user.setPassword(BcryptImpl.hash(user.getPassword()));
+            if (userOptional.isEmpty()) {
+                user.setOtp(BcryptImpl.hash(otp));
+                user.setPassword(BcryptImpl.hash(user.getPassword()));
 
-            User savedUser = userRepository.save(user);
+                User savedUser = userRepository.save(user);
 
-            savedUser.setUpdatedAt(LocalDateTime.now());
-            savedUser.setUpdatedBy(savedUser.getId().toString());
+                savedUser.setUpdatedAt(LocalDateTime.now());
+                savedUser.setUpdatedBy(savedUser.getId().toString());
+            } else if (userOptional.get().getUsername() == null) {
+                User existingUser = userOptional.get();
+                existingUser.setOtp(BcryptImpl.hash(otp));
+                existingUser.setUsername(user.getUsername());
+                existingUser.setPassword(BcryptImpl.hash(user.getPassword()));
+                existingUser.setFullname(user.getFullname());
+                existingUser.setPhoneNumber(user.getPhoneNumber());
+                existingUser.setUpdatedAt(LocalDateTime.now());
+                existingUser.setUpdatedBy(existingUser.getId().toString());
+
+                userRepository.save(existingUser);
+            }
 
             SendMailUtil.sendOTP(
                     "OTP Verifikasi Registrasi Akun",
