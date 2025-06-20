@@ -6,11 +6,11 @@ import org.springframework.http.ResponseEntity;
 
 public class GlobalSuccessHandler {
     public static ResponseEntity<Object> dataSudahTerdaftar(String errorCode, HttpServletRequest request, String name) {
-        return new ResponseHandler().handleResponse(name + " is already registered", HttpStatus.BAD_REQUEST, null, errorCode, request);
+        return new ResponseHandler().handleResponse(name + " sudah terdaftar", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> dataBerhasilDisimpan(HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("SAVE SUCCESS !!", HttpStatus.CREATED, null, null, request);
+        return new ResponseHandler().handleResponse("data berhasil dibuat", HttpStatus.CREATED, null, null, request);
     }
 
     public static ResponseEntity<Object> dataBerhasilDisimpan(String message, HttpServletRequest request) {
@@ -18,14 +18,14 @@ public class GlobalSuccessHandler {
     }
 
     public static ResponseEntity<Object> dataBerhasilDiubah(HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA UPDATED SUCCESSFULLY", HttpStatus.OK, null, null, request);
+        return new ResponseHandler().handleResponse("data berhasil terupdate", HttpStatus.OK, null, null, request);
     }
 
     public static ResponseEntity<Object> dataBerhasilDihapus(HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA DELETED SUCCESSFULLY", HttpStatus.OK, null, null, request);
+        return new ResponseHandler().handleResponse("data berhasil dihapus", HttpStatus.OK, null, null, request);
     }
 
     public static ResponseEntity<Object> dataDitemukan(Object data, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA FOUND", HttpStatus.OK, data, null, request);
+        return new ResponseHandler().handleResponse("data ditemukan", HttpStatus.OK, data, null, request);
     }
 }

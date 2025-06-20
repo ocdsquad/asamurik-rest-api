@@ -1,14 +1,14 @@
 package com.asamurik_rest_api.common.response;
 
 public enum ErrorCode {
-    INVALID_EMAIL("Invalid email address"),
-    PASSWORD_TOO_SHORT("Password must be at least 8 characters long"),
-    USER_NOT_FOUND("User not found"),
-    INVALID_CREDENTIALS("Invalid email or password"),
-    UNAUTHORIZED("Unauthorized access"),
-    FORBIDDEN("Forbidden access"),
-    FILE_NOT_FOUND("File not found"),
-    INTERNAL_SERVER_ERROR("Internal server error");
+    INVALID_EMAIL("invalid email address"),
+    PASSWORD_TOO_SHORT("password must be at least 8 characters long"),
+    USER_NOT_FOUND("iser not found"),
+    INVALID_CREDENTIALS("invalid email or password"),
+    UNAUTHORIZED("unauthorized access"),
+    FORBIDDEN("forbidden access"),
+    FILE_NOT_FOUND("file tidak ditemukan"),
+    INTERNAL_SERVER_ERROR("internal server error");
 
 
     private final String message;

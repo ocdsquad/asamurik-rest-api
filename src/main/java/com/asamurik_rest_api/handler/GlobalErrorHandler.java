@@ -10,27 +10,27 @@ public class GlobalErrorHandler {
 
 
     public static ResponseEntity<Object> dataGagalDisimpan(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("FAILED TO SAVE !!", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
+        return new ResponseHandler().handleResponse("gagal menyimpan", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> dataGagalDiubah(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA GAGAL DIUBAH", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
+        return new ResponseHandler().handleResponse("data gagal diubah", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> dataGagalDihapus(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA GAGAL DIHAPUS", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
+        return new ResponseHandler().handleResponse("data gagal dihapus", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> terjadiKesalahan(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("TERJADI KESALAHAN", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
+        return new ResponseHandler().handleResponse("terjadi kesalahan", HttpStatus.INTERNAL_SERVER_ERROR, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> dataTidakDitemukan(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("DATA TIDAK DITEMUKAN", HttpStatus.BAD_REQUEST, null, errorCode, request);
+        return new ResponseHandler().handleResponse("data tidak ditemukan", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> objectIsNull(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("OBJECT NULL !!", HttpStatus.BAD_REQUEST, null, errorCode, request);
+        return new ResponseHandler().handleResponse("object null", HttpStatus.BAD_REQUEST, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> dataSudahTerdaftar(String errorCode, HttpServletRequest request, String name) {
@@ -46,21 +46,21 @@ public class GlobalErrorHandler {
     }
 
     public static ResponseEntity<Object> akunSudahAktif(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Akun sudah aktif", HttpStatus.CONFLICT, null, errorCode, request);
+        return new ResponseHandler().handleResponse("akun sudah aktif", HttpStatus.CONFLICT, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> akunBelumAktif(String errorCode, String email, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Akun belum aktif", HttpStatus.FORBIDDEN, Map.of("email", email), errorCode, request);
+        return new ResponseHandler().handleResponse("akun belum aktif", HttpStatus.FORBIDDEN, Map.of("email", email), errorCode, request);
     }
 
     public static ResponseEntity<Object> usernameAtauPasswordSalah(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Username atau password salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
+        return new ResponseHandler().handleResponse("username atau password salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
     }
 
     public static ResponseEntity<Object> tokenSalah(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Token yang anda masukkan salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
+        return new ResponseHandler().handleResponse("token yang anda masukkan salah", HttpStatus.UNAUTHORIZED, null, errorCode, request);
     }
     public static ResponseEntity<Object> typeImageSalah(String errorCode, HttpServletRequest request) {
-        return new ResponseHandler().handleResponse("Type image yang anda masukkan salah, silahkan masukkan file bertipe jpg,jpeg,png", HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, errorCode, request);
+        return new ResponseHandler().handleResponse("type image yang anda masukkan salah, silahkan masukkan file bertipe jpg,jpeg,png", HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, errorCode, request);
     }
 }

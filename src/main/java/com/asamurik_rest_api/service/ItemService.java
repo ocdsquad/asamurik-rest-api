@@ -11,7 +11,6 @@ import com.asamurik_rest_api.repository.CategoryRepository;
 import com.asamurik_rest_api.repository.ItemRepository;
 import com.asamurik_rest_api.repository.ReportRepository;
 import com.asamurik_rest_api.repository.UserRepository;
-import com.asamurik_rest_api.utils.FileStorageUtil;
 import com.asamurik_rest_api.utils.FileValidatorUtil;
 import com.asamurik_rest_api.utils.JwtUtil;
 import com.asamurik_rest_api.utils.TransformPagination;
@@ -19,25 +18,25 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.coyote.BadRequestException;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
-import java.net.URI;
 
 
 @Service
@@ -275,11 +274,11 @@ public class ItemService implements IService<Item, UUID> {
                 String TEMP_IMAGE_DIR = "uploads/item_images/";
 
                 if (!FileValidatorUtil.isImageFile(imageFile)) {
-                    throw new IllegalArgumentException("Invalid image file type");
+                    throw new IllegalArgumentException("masukkan tipe file gambar yang valid");
                 }
 
                 if (!FileValidatorUtil.isValidFileSize(imageFile.getSize(), MAX_FILE_SIZE)) {
-                    throw new IllegalArgumentException("Image file size exceeds limit");
+                    throw new IllegalArgumentException("file gambar melebihi batas ukuran maksimum 5MB");
                 }
 
                 String imageUrl = uploadImage(imageFile);
@@ -354,17 +353,17 @@ public class ItemService implements IService<Item, UUID> {
         try {
             String authHeader = request.getHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return GlobalErrorHandler.dataTidakDitemukan("TOKEN_TIDAK_VALID", request);
+                return GlobalErrorHandler.dataTidakDitemukan("token tidak valid", request);
             }
 
             String token = authHeader.substring(7);
             UUID userId = UUID.fromString(jwtTokenUtil.getUserIdFromToken(token));
 
             Item item = itemRepository.findById(itemId)
-                    .orElseThrow(() -> new RuntimeException("Item tidak ditemukan"));
+                    .orElseThrow(() -> new RuntimeException("item tidak ditemukan"));
 
             if (item.getDeletedAt() != null) {
-                return GlobalErrorHandler.dataTidakDitemukan("Item sudah dihapus", request);
+                return GlobalErrorHandler.dataTidakDitemukan("item sudah dihapus", request);
             }
 
             LocalDateTime now = LocalDateTime.now();

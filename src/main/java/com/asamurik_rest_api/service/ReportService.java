@@ -60,9 +60,9 @@ public class ReportService implements IService<Report, Long> {
 
 
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + username));
+                    .orElseThrow(() -> new IllegalArgumentException("user dengan username ini tidak ditemukan " + username));
             Item item = itemRepository.findById(itemUuid)
-                    .orElseThrow(() -> new IllegalArgumentException("Item not found with ID: " + itemID));
+                    .orElseThrow(() -> new IllegalArgumentException("item dengan id tidak ditemukan " + itemID));
 
             report.setItem(item);
             report.setUser(user);
@@ -88,7 +88,7 @@ public class ReportService implements IService<Report, Long> {
             );
         }
         return new ResponseHandler().handleResponse(
-                "Report berhasil dikirimkan ke " + report.getItem().getUserId().getFullname(),
+                "report berhasil dikirimkan ke " + report.getItem().getUserId().getFullname(),
                 HttpStatus.CREATED,
                 null,
                 null,
@@ -159,7 +159,7 @@ public class ReportService implements IService<Report, Long> {
 
             if (!BcryptImpl.verifyHash(reportDTO.getOtp(), user.getOtp())) {
                 return new ResponseHandler().handleResponse(
-                        "Invalid OTP",
+                        "OTP tidak valid",
                         HttpStatus.UNAUTHORIZED,
                         null,
                         null,
@@ -169,7 +169,7 @@ public class ReportService implements IService<Report, Long> {
 
             UUID itemUuid = UUID.fromString(itemID);
             Item item = itemRepository.findById(itemUuid)
-                    .orElseThrow(() -> new IllegalArgumentException("Item not found with ID: " + itemID));
+                    .orElseThrow(() -> new IllegalArgumentException("item dengan id tersebut tidak ditemukan " + itemID));
 
 
             report.setUser(user);
@@ -197,7 +197,7 @@ public class ReportService implements IService<Report, Long> {
         }
 
         return new ResponseHandler().handleResponse(
-                "Report send successfully to " + report.getItem().getUserId().getFullname(),
+                "report berhasil dikirimkan ke " + report.getItem().getUserId().getFullname(),
                 HttpStatus.CREATED,
                 null,
                 null,

@@ -9,7 +9,6 @@ import com.asamurik_rest_api.handler.GlobalErrorHandler;
 import com.asamurik_rest_api.handler.ResponseHandler;
 import com.asamurik_rest_api.repository.UserRepository;
 import com.asamurik_rest_api.security.BcryptImpl;
-import com.asamurik_rest_api.utils.FileStorageUtil;
 import com.asamurik_rest_api.utils.FileValidatorUtil;
 import com.asamurik_rest_api.utils.OtpGenerator;
 import com.asamurik_rest_api.utils.SendMailUtil;
@@ -111,7 +110,7 @@ public class UserService implements IService<User, UUID> {
                     updatedUser.setOtp(BcryptImpl.hash(otp));
 
                     SendMailUtil.sendOTP(
-                            "OTP Verifikasi Email",
+                            "OTP verifikasi Email",
                             user.getFullname(),
                             user.getEmail(),
                             otp,
@@ -191,7 +190,7 @@ public class UserService implements IService<User, UUID> {
             }
         } catch (IllegalArgumentException e) {
             return new ResponseHandler().handleResponse(
-                    "Invalid UUID format: " + id,
+                    "format UUID salah: " + id,
                     HttpStatus.BAD_REQUEST,
                     null,
                     null,
@@ -221,7 +220,7 @@ public class UserService implements IService<User, UUID> {
         } catch (IllegalArgumentException e) {
             // Handle the case where the username is not a valid UUID
             return new ResponseHandler().handleResponse(
-                    "Invalid UUID format: " + username,
+                    "format username salah " + username,
                     HttpStatus.BAD_REQUEST,
                     null,
                     null,
