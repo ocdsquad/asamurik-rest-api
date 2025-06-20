@@ -122,7 +122,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             userDB.setOtp(BcryptImpl.hash(otp));
 
             return new ResponseHandler().handleResponse(
-                    "Verifikasi registrasi berhasil",
+                    "verifikasi registrasi berhasil",
                     HttpStatus.OK,
                     null,
                     null,
@@ -130,7 +130,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
-                    "Verifikasi gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    "verifikasi gagal, server sedang gangguan, silahkan coba lagi nanti",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     null,
@@ -166,7 +166,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             String token = jwtUtil.doGenerateToken(claims, userDB.getId().toString());
 
             return new ResponseHandler().handleResponse(
-                    "Login berhasil",
+                    "login berhasil",
                     HttpStatus.OK,
                     mapToTokenResponseDTO(token),
                     null,
@@ -174,7 +174,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
-                    "Login gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    "login gagal, server sedang gangguan, silahkan coba lagi nanti",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     null,
@@ -214,7 +214,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
-                    "Pengiriman OTP gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    "pengiriman OTP gagal, server sedang gangguan, silahkan coba lagi nanti",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     null,
@@ -296,7 +296,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             userDB.setUpdatedBy(userDB.getId().toString());
 
             return new ResponseHandler().handleResponse(
-                    "Verifikasi OTP berhasil, silahkan gunakan token ini untuk reset password",
+                    "verifikasi OTP berhasil, silahkan gunakan token ini untuk reset password",
                     HttpStatus.OK,
                     mapToTokenResponseDTO(token),
                     null,
@@ -304,7 +304,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
-                    "Verifikasi gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    "verifikasi gagal, server sedang gangguan, silahkan coba lagi nanti",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     null,
@@ -339,7 +339,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             userDB.setUpdatedBy(userDB.getId().toString());
 
             return new ResponseHandler().handleResponse(
-                    "Reset password berhasil",
+                    "reset password berhasil",
                     HttpStatus.OK,
                     null,
                     null,
@@ -347,7 +347,7 @@ public class AuthService implements UserDetailsService, IAuth<User> {
             );
         } catch (Exception e) {
             return new ResponseHandler().handleResponse(
-                    "Reset password gagal, server sedang gangguan, silahkan coba lagi nanti",
+                    "reset password gagal, server sedang gangguan, silahkan coba lagi nanti",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     null,
